@@ -94,10 +94,13 @@ public final class PrintJob {
     }
 
     /**
-     * Gets the content of the control file.
+     * Gets the content of the control file. Returns <code>null</code> if the
+     * control file has not been received yet.
      */
     public byte[] getControlFileContent() {
-        return this.controlFileContent;
+        return this.controlFileContent == null 
+                ? null
+                : this.controlFileContent.clone();
     }
 
     /**

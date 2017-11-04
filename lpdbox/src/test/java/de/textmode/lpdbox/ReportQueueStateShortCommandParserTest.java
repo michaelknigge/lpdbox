@@ -59,7 +59,7 @@ public final class ReportQueueStateShortCommandParserTest extends TestCase {
 
         parser.parse(is, os);
 
-        assertEquals(TEXT, os.toString());
+        assertEquals(TEXT, os.toString("ISO-8859-1"));
 
         return handler;
     }

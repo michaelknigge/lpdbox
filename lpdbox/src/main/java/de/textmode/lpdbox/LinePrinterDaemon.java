@@ -98,7 +98,7 @@ public final class LinePrinterDaemon implements Runnable {
 
         this.isRunning = false;
 
-        if (!this.serverSocket.isClosed()) {
+        if (this.serverSocket != null && !this.serverSocket.isClosed()) {
             this.closeSocketQuietly(this.serverSocket);
         }
     }
@@ -174,7 +174,7 @@ public final class LinePrinterDaemon implements Runnable {
         this.closeSocketQuietly(this.serverSocket);
         this.isShutdownRequested = true;
 
-        // maybe we should also kill the client sockets to the server can *really* quit!
+        // TODO: maybe we should also kill the client sockets to the server can *really* quit!
         // or pass a "ServerState" to the Handlers so they can check if they should stop
         // working...
     }

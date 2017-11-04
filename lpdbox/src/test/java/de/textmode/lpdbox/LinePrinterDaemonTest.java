@@ -25,7 +25,8 @@ public final class LinePrinterDaemonTest extends TestCase {
             this.printJob = printJob;
             this.dataFileContent = new byte[(int) this.printJob.getDataFileLength()];
 
-            dataFileStream.read(this.dataFileContent);
+            final int read = dataFileStream.read(this.dataFileContent);
+            assertEquals(this.printJob.getDataFileLength(), read);
         }
     };
 
