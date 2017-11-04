@@ -22,6 +22,10 @@ subprojects {
   javadoc {
     options.encoding = 'UTF-8'
   }
+  
+  checkstyle {
+    toolVersion = "6.0"
+  }
 
   repositories {
     jcenter()
