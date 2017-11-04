@@ -1,0 +1,29 @@
+language:
+  java
+
+script:
+  "./gradlew"
+
+before_script:
+  - pip install --user codecov
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+before_install:
+  - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "H5GgGxeL7LZBWzpFG7iHfUO3Ugjn16CYLZ0bn6G1klA5EXKSKt/a+xZ6j0ZM6UZcjXSAE/lHqAJChFWOnkrFtLyI9PlV38Ywa8f5rkapUQJQ7Nxv4Ypc3CSeCxR8FmucjtOMaYGdPMJusmZOVgB2k52mX3YWIGNdWk3T0DuIRdEXD8LaF1ZaXTBCSHGYyZzPZeNr9olAFwUjsWPbwKhYprDv473Lcs2NdZxz9HwxaIgP1SuhAN8cr/hQaNhkzUWUj1LR+vCo2NxRFO+PcIHGAcPuubYQ0twlFXwN+lhAFMwfbYvJYx78yh+bmjLKZSmc5ewVvQ3TP2mSVZ9O9YLeQuyADjkVH25sRn5qMH7nDrM+66YNknRvNR1BdjP71rV6mM9bBmZwEKaSzFlFMjhvRDNyCVjze3U9H+F7Xgg7yKozg0w8NlEyH1j/JK+/61nUIDVjYwu+rYHebGQQriYo/tGvMzM6URKPlAQlRS18u+IlW0slgQAEiqLbViRcKd2z/Dffge+m6eQmyeHV6IakQUxCBnLxb9KqvmCQc6wqOkqBX24M+SIk0skvBONF26A7EVUbEMa38CiAS9ooTb89sAClcR1Gv1rbdssQRLuJ4sggz3oS7k+9xKk7ZmaHVEEPBsuklmr0G52kjymi7HNzp9zKrKRWVXA2oY5JcVb600Q="
+
+addons:
+  coverity_scan:
+    project:
+      name: "michaelknigge/lpdbox"
+      description: "Java LPD-Server Framework"
+    notification_email: michael.knigge@gmx.de
+    build_command_prepend: "./gradlew clean"
+    build_command:   "./gradlew"
