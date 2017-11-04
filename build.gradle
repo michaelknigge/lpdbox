@@ -1,0 +1,46 @@
+defaultTasks 'clean', 'test', 'check', 'checkstyleMain', 'checkstyleTest', 'assemble'
+
+subprojects {
+
+  apply plugin: 'java'
+  apply plugin: 'eclipse'
+  apply plugin: 'checkstyle'
+  apply plugin: 'jacoco'
+  apply plugin: 'findbugs'
+
+  version = "0.7"
+  
+  check.dependsOn jacocoTestReport
+  
+  tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+  }
+
+  javadoc {
+    options.encoding = 'UTF-8'
+  }
+
+  repositories {
+    jcenter()
+  }
+
+  dependencies {
+    compile 'com.google.code.findbugs:annotations:3.0.1'
+    compile 'org.slf4j:slf4j-api:1.7.25'
+    compile 'org.slf4j:slf4j-simple:1.7.25'
+    testCompile 'junit:junit:4.12'
+  }
+  
+  checkstyle {
+    configFile = new File(rootDir, "config/checkstyle.xml")
+  }
+
+  jacocoTestReport {
+    reports {
+      xml.enabled = true
+      html.enabled = true
+    }
+  }
+}
