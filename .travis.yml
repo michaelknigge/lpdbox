@@ -23,7 +23,8 @@ addons:
   coverity_scan:
     project:
       name: "michaelknigge/lpdbox"
-      description: "Java LPD-Server Framework"
+      description: "Java LPD-Server framework"
     notification_email: michael.knigge@gmx.de
     build_command_prepend: "./gradlew clean"
     build_command:   "./gradlew"
+    branch_pattern: master
