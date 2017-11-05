@@ -34,7 +34,7 @@ public final class LinePrinterDaemonTest extends TestCase {
     };
     
     private static class PrintJobsCommandHandlerStub implements PrintJobsCommandHandler {
-        private String queueName;
+        private volatile String queueName;
         
         @Override
         public void handle(final String qn) {
@@ -55,6 +55,7 @@ public final class LinePrinterDaemonTest extends TestCase {
      */
     private static void writeTo(final OutputStream os, final String hexString) throws IOException {
         os.write(hexToByteArray(hexString));
+        os.flush();
     }
 
     private void readPositiveAcknowledgement(final InputStream is) throws IOException {

@@ -43,8 +43,9 @@ public final class LinePrinterDaemon implements Runnable {
     private final CommandParser[] parsers;
 
     private ServerSocket serverSocket;
-    private boolean isRunning;
-    private boolean isShutdownRequested;
+    
+    private volatile boolean isRunning;
+    private volatile boolean isShutdownRequested;
 
     /**
      * Constructor. Use the {@link de.textmode.lpdbox.LinePrinterDaemonBuilder} to
