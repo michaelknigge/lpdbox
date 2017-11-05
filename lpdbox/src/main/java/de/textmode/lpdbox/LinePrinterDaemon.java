@@ -42,8 +42,7 @@ public final class LinePrinterDaemon implements Runnable {
     private final Logger logger;
     private final CommandParser[] parsers;
 
-    private ServerSocket serverSocket;
-    
+    private volatile ServerSocket serverSocket;
     private volatile boolean isRunning;
     private volatile boolean isShutdownRequested;
 
