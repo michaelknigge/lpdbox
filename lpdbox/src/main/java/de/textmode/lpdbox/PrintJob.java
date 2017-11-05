@@ -1,7 +1,5 @@
 package de.textmode.lpdbox;
 
-import java.util.List;
-
 /*
  * Copyright 2017 Michael Knigge
  *
@@ -17,6 +15,8 @@ import java.util.List;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import java.util.List;
 
 /**
  * Holds information about the print job that is currently handled.
