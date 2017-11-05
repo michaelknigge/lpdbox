@@ -14,6 +14,8 @@ import junit.framework.TestCase;
  * Unit-Tests of class {@link LinePrinterDaemon}.
  */
 public final class LinePrinterDaemonTest extends TestCase {
+    
+    private static final int PORT_NUMBER = 1515;
 
     private static class ReceivePrinterJobCommandHandlerStub implements ReceivePrinterJobCommandHandler {
         private PrintJob printJob;
@@ -27,6 +29,15 @@ public final class LinePrinterDaemonTest extends TestCase {
 
             final int read = dataFileStream.read(this.dataFileContent);
             assertEquals(this.printJob.getDataFileLength(), read);
+        }
+    };
+    
+    private static class PrintJobsCommandHandlerStub implements PrintJobsCommandHandler {
+        private String queueName;
+        
+        @Override
+        public void handle(final String qn) {
+            this.queueName = qn;
         }
     };
 
@@ -49,24 +60,30 @@ public final class LinePrinterDaemonTest extends TestCase {
         final int ack = is.read();
         assertEquals(0, ack);
     }
-
+    
     /**
      * "Replays" a real-world examlple.
      */
-    public void testRealWorldExample() throws IOException {
+    public void testRealWorldExample() throws Exception {
         final ReceivePrinterJobCommandHandlerStub handler = new ReceivePrinterJobCommandHandlerStub();
 
-        final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder().portNumber(1515)
-                                                                       .receiveJobCommandHandler(handler)
-                                                                       .build();
+        final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder()
+                .portNumber(PORT_NUMBER)
+                .receiveJobCommandHandler(handler)
+                .build();
 
+        assertFalse(daemon.isRunning());
+        
         final Thread thread = new Thread(daemon);
         thread.setDaemon(true);
 
         daemon.startup();
+        assertFalse(daemon.isRunning());
+
         thread.start();
 
-        final Socket s = new Socket("localhost", 1515);
+        final Socket s = new Socket("localhost", PORT_NUMBER);
+        assertTrue(daemon.isRunning());
 
         try {
             final InputStream is = s.getInputStream();
@@ -180,7 +197,45 @@ public final class LinePrinterDaemonTest extends TestCase {
 
         } finally {
             s.close();
-            daemon.stop();
+            daemon.stop(5000);
         }
+    }
+
+    /**
+     * Sends an invalid control code.
+     */
+    public void testInvalidControlCode() throws Exception {
+        
+        final PrintJobsCommandHandlerStub handler = new PrintJobsCommandHandlerStub();
+        
+        final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder()
+                .portNumber(PORT_NUMBER)
+                .printJobsCommandHandler(handler)
+                .build();
+
+        final Thread thread = new Thread(daemon);
+        thread.setDaemon(true);
+        daemon.startup();
+        thread.start();
+
+        // First we send an invalid control code - the server will close the connection...
+        final Socket s = new Socket("localhost", PORT_NUMBER);
+        try {
+            writeTo(s.getOutputStream(), "000000000a");
+            assertEquals(-1, s.getInputStream().read());
+        } finally {
+            s.close();
+        }
+        
+        // The server is still running and should accept and handle connections - we check this now
+        final Socket s2 = new Socket("localhost", PORT_NUMBER);
+        try {
+            writeTo(s2.getOutputStream(), "016C700A");
+        } finally {
+            s2.close();
+        }
+        
+        daemon.stop(5000);
+        assertEquals("lp", handler.queueName);
     }
 }

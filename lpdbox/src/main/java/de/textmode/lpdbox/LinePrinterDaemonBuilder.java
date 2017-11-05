@@ -49,7 +49,7 @@ public final class LinePrinterDaemonBuilder {
     /**
      * Sets the {@link PrintJobsCommandHandler}.
      */
-    LinePrinterDaemonBuilder printJobCommandHandler(final PrintJobsCommandHandler handler) {
+    LinePrinterDaemonBuilder printJobsCommandHandler(final PrintJobsCommandHandler handler) {
         this.parsers[LinePrinterDaemon.COMMAND_CODE_PRINT_JOBS] = new PrintJobsCommandParser(handler);
         return this;
     }

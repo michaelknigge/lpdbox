@@ -117,6 +117,8 @@ public final class LinePrinterDaemon implements Runnable {
      * Accepts connections from clients and handles them.
      */
     private void handleConnections() throws IOException {
+        this.isRunning = true;
+        
         while (!this.isShutdownRequested) {
             this.logger.debug("Waiting for incoming connection");
             final Socket connection = this.serverSocket.accept();
@@ -153,7 +155,7 @@ public final class LinePrinterDaemon implements Runnable {
         }
 
         if (commandCode < COMMAND_CODE_PRINT_JOBS || commandCode > COMMAND_CODE_REMOVE_PRINT_JOBS) {
-            this.logger.error("Peer " + peer + " passed a unknwon command code " + Integer.toHexString(commandCode));
+            this.logger.error("Peer " + peer + " passed an unknwon command code " + Integer.toHexString(commandCode));
             return;
         }
 
@@ -168,14 +170,34 @@ public final class LinePrinterDaemon implements Runnable {
     }
 
     /**
-     * Stops the {@link LinePrinterDaemon}.
+     * Stops the {@link LinePrinterDaemon}. Note that this method will not wait until the
+     * {@link LinePrinterDaemon} has been stopped.
      */
     public void stop() {
         this.closeSocketQuietly(this.serverSocket);
         this.isShutdownRequested = true;
 
-        // TODO: maybe we should also kill the client sockets to the server can *really* quit!
+        // TODO: maybe we should also kill the client sockets so the server can *really* quit!
         // or pass a "ServerState" to the Handlers so they can check if they should stop
         // working...
+    }
+    
+    /**
+     * Stops the {@link LinePrinterDaemon}. This method waits up to the given milliseconds until
+     * the {@link LinePrinterDaemon} has been stopped. If the {@link LinePrinterDaemon} has been
+     * ended within that given timeout, <code>true</code> is returned, otherwise <code>false</code>.
+     */
+    public boolean stop(final long timeoutInMillis) throws InterruptedException {
+        this.closeSocketQuietly(this.serverSocket);
+        this.isShutdownRequested = true;
+        
+        for (int ix=0; ix<timeoutInMillis; ix+=100) {
+            if (!this.isRunning) {
+                return true;
+            }
+            Thread.sleep(100);
+        }
+        
+        return false;
     }
 }
