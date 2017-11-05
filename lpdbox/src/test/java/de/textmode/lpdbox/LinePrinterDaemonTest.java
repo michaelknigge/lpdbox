@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Arrays;
 
 import javax.xml.bind.DatatypeConverter;
@@ -222,7 +223,11 @@ public final class LinePrinterDaemonTest extends TestCase {
         final Socket s = new Socket("localhost", PORT_NUMBER);
         try {
             writeTo(s.getOutputStream(), "000000000a");
+            
+            // On my Windows box I get a -1 when doing a read on the socket....
             assertEquals(-1, s.getInputStream().read());
+        } catch (SocketException e) {
+            // .... and on Linux a SocketException is thrown on the read()...
         } finally {
             s.close();
         }
