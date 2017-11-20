@@ -90,7 +90,7 @@ public final class LinePrinterDaemon implements Runnable {
                 this.startup();
             }
             this.handleConnections();
-        } catch (final IOException e) {
+        } catch (final Throwable e) {
             if (!this.isShutdownRequested) {
                 this.logger.error(e.getMessage());
             }
@@ -130,7 +130,7 @@ public final class LinePrinterDaemon implements Runnable {
 
             try {
                 this.handleConnection(connection);
-            } catch (final IOException e) {
+            } catch (final Throwable e) {
                 this.logger.error("An error occurred while handling connection from " + peer + ": " + e.getMessage());
             } finally {
                 this.closeSocketQuietly(connection);
@@ -157,29 +157,31 @@ public final class LinePrinterDaemon implements Runnable {
 
         final DaemonCommandHandler handler = this.factory.create();
         if (handler == null) {
-            this.logger.error("A daemon command handler could not be created.");
+            this.logger.error("A daemon command handler could not be created");
             return;
         }
 
+        this.logger.debug("Peer " + peer + " sent command code " + Integer.toHexString(commandCode));
+
         switch (commandCode) {
         case COMMAND_CODE_PRINT_JOBS:
-            PrintJobsCommandParser.parse(handler, is, os);
+            PrintJobsCommandParser.parse(this.logger, handler, is, os);
             break;
 
         case COMMAND_CODE_RECEIVE_PRINTER_JOB:
-            ReceivePrinterJobCommandParser.parse(handler, is, os);
+            ReceivePrinterJobCommandParser.parse(this.logger, handler, is, os);
             break;
 
         case COMMAND_CODE_REPORT_QUEUE_STATE_SHORT:
-            ReportQueueStateShortCommandParser.parse(handler, is, os);
+            ReportQueueStateShortCommandParser.parse(this.logger, handler, is, os);
             break;
 
         case COMMAND_CODE_REPORT_QUEUE_STATE_LONG:
-            ReportQueueStateLongCommandParser.parse(handler, is, os);
+            ReportQueueStateLongCommandParser.parse(this.logger, handler, is, os);
             break;
 
         case COMMAND_CODE_REMOVE_PRINT_JOBS:
-            RemovePrintJobsCommandParser.parse(handler, is, os);
+            RemovePrintJobsCommandParser.parse(this.logger, handler, is, os);
             break;
 
         default:
@@ -193,6 +195,7 @@ public final class LinePrinterDaemon implements Runnable {
      * {@link LinePrinterDaemon} has been stopped.
      */
     public void stop() {
+        this.logger.info("Stopping line printer daemon");
         this.closeSocketQuietly(this.serverSocket);
         this.isShutdownRequested = true;
 
@@ -207,16 +210,20 @@ public final class LinePrinterDaemon implements Runnable {
      * ended within that given timeout, <code>true</code> is returned, otherwise <code>false</code>.
      */
     public boolean stop(final long timeoutInMillis) throws InterruptedException {
+        this.logger.info("Stopping line printer daemon");
+
         this.closeSocketQuietly(this.serverSocket);
         this.isShutdownRequested = true;
 
         for (int ix = 0; ix < timeoutInMillis; ix += 100) {
             if (!this.isRunning) {
+                this.logger.info("Line printer daemon stopped");
                 return true;
             }
             Thread.sleep(100);
         }
 
+        this.logger.info("The line printer daemon is still alive (refuses to stop)");
         return false;
     }
 }

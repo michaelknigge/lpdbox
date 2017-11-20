@@ -21,6 +21,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
+import org.slf4j.Logger;
+
 /**
  * The {@link ReportQueueStateLongCommandParser} parses the daemon command "Send queue state (long)"
  * and sends the response back to the client.
@@ -35,13 +37,14 @@ final class ReportQueueStateLongCommandParser {
      * the {@link DaemonCommandHandler}.
      */
     static void parse(
+            final Logger logger,
             final DaemonCommandHandler handler,
             final InputStream is,
             final OutputStream os) throws IOException {
 
         final String parameterString = Util.readLine(is);
         if (parameterString.isEmpty()) {
-            throw new IOException("No queue name was provided.");
+            throw new IOException("No queue name was provided by the client");
         }
 
         final String[] parameters = parameterString.split("\\s+");

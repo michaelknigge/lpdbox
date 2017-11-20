@@ -21,6 +21,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
+import org.slf4j.Logger;
+
 /**
  * The {@link RemovePrintJobsCommandParser} parses the daemon command "Remove print jobs"
  * and sends the response back to the client.
@@ -35,6 +37,7 @@ final class RemovePrintJobsCommandParser {
      * the {@link DaemonCommandHandler}.
      */
     static void parse(
+            final Logger logger,
             final DaemonCommandHandler handler,
             final InputStream is,
             final OutputStream os) throws IOException {

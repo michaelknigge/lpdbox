@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.slf4j.Logger;
+
 /**
  * The {@link PrintJobsCommandParser} parses the daemon command "Print any waiting jobs"
  * and sends the response back to the client.
@@ -34,13 +36,14 @@ final class PrintJobsCommandParser {
      * the {@link DaemonCommandHandler}.
      */
     static void parse(
+            final Logger logger,
             final DaemonCommandHandler handler,
             final InputStream is,
             final OutputStream os) throws IOException {
 
         final String queueName = Util.readLine(is);
         if (queueName.isEmpty()) {
-            throw new IOException("No queue name was provided.");
+            throw new IOException("No queue name was provided by the client");
         }
 
         handler.printJobs(queueName);

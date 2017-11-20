@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.slf4j.Logger;
+
 /**
  * The {@link ReceivePrinterJobCommandParser} parses the daemon command "Receive printer job"
  * and sends the response back to the client.
@@ -50,13 +52,14 @@ final class ReceivePrinterJobCommandParser {
      * the {@link DaemonCommandHandler}.
      */
     static void parse(
+            final Logger logger,
             final DaemonCommandHandler handler,
             final InputStream is,
             final OutputStream os) throws IOException {
 
         final String queueName = Util.readLine(is);
         if (queueName.isEmpty()) {
-            throw new IOException("No queue name was provided.");
+            throw new IOException("No queue name was provided by the client");
         }
 
         if (handler.startPrinterJob(queueName)) {
@@ -77,8 +80,9 @@ final class ReceivePrinterJobCommandParser {
             }
 
             if (commandCode < COMMAND_CODE_ABORT_JOB || commandCode > COMMAND_CODE_RECEIVE_DATA_FILE) {
-                throw new IOException("Peer passed an unknwon second level command code 0x" + Integer.toHexString(
-                        commandCode) + " for the command receive printer job");
+                throw new IOException("Peer passed an unknwon second level command code 0x" 
+                        + Integer.toHexString(commandCode) 
+                        + " for the command receive printer job");
             }
 
             if (commandCode == COMMAND_CODE_ABORT_JOB) {
