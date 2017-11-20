@@ -1,5 +1,14 @@
-defaultTasks 'clean', 'test', 'check', 'assemble'
-/* defaultTasks 'clean', 'test', 'check', 'checkstyleMain', 'checkstyleTest', 'assemble' */
+defaultTasks 'clean', 'test', 'check', 'checkstyleMain', 'checkstyleTest', 'assemble'
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath 'net.researchgate:gradle-release:2.4.0'
+    }
+}
 
 subprojects {
 
@@ -8,11 +17,15 @@ subprojects {
   apply plugin: 'checkstyle'
   apply plugin: 'jacoco'
   apply plugin: 'findbugs'
+  apply plugin: 'maven'
+  apply plugin: 'maven-publish'
+  apply plugin: 'com.jfrog.bintray'
+  apply plugin: 'net.researchgate.release'
 
-  version = "0.7"
-  
+  version = "0.8"
+
   check.dependsOn jacocoTestReport
-  
+
   tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
     sourceCompatibility = '1.8'
@@ -22,7 +35,7 @@ subprojects {
   javadoc {
     options.encoding = 'UTF-8'
   }
-  
+
   checkstyle {
     toolVersion = "6.0"
   }
@@ -37,7 +50,7 @@ subprojects {
     compile 'org.slf4j:slf4j-simple:1.7.25'
     testCompile 'junit:junit:4.12'
   }
-  
+
   checkstyle {
     configFile = new File(rootDir, "config/checkstyle.xml")
   }
@@ -46,6 +59,71 @@ subprojects {
     reports {
       xml.enabled = true
       html.enabled = true
+    }
+  }
+
+  release {
+    failOnUnversionedFiles = false
+  }
+
+  bintray {
+    user = project.hasProperty('bintray.user') ? project.property('bintray.user') : System.getenv('BINTRAY_USER')
+    key = project.hasProperty('bintray.key') ? project.property('bintray.key') : System.getenv('BINTRAY_KEY')
+
+    publications = ['maven']
+    publish = true
+    pkg {
+      repo = 'maven'
+      name = 'lpdbox'
+      licenses = ['Apache-2.0']
+      vcsUrl = 'https://github.com/michaelknigge/lpdbox.git'
+      websiteUrl = 'https://github.com/michaelknigge/lpdbox'
+      issueTrackerUrl = 'https://github.com/michaelknigge/lpdbox/issues'
+      labels = ['lpd','lpr','printserver']
+      publicDownloadNumbers = true
+
+      githubRepo = 'michaelknigge/lpdbox'
+
+      version {
+        name = project.version
+        desc = "lpdbox version ${project.version}"
+        released = new Date()
+        vcsTag = "${project.version}"
+
+        gpg {
+          sign = true
+        }
+      }
+    }
+  }
+
+  task sourceJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allJava
+  }
+
+  task javadocJar (type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+  }
+
+  publishing {
+    publications {
+      maven(MavenPublication) {
+      from components.java
+
+      artifact sourceJar {
+        classifier 'sources'
+      }
+
+      artifact (javadocJar) {
+        classifier = 'javadoc'
+      }
+
+      groupId 'de.textmode.lpdbox'
+      artifactId 'lpdbox'
+      version "${project.version}"
+      }
     }
   }
 }
