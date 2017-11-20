@@ -46,7 +46,7 @@ final class RemovePrintJobsCommandParser {
         final String[] parameters = parameterString.split("\\s+");
 
         if (parameters.length < 2) {
-            throw new IOException("Peer sent inavlid data: " + parameterString);
+            throw new IOException("Client sent inavlid data: " + parameterString);
         }
 
         final ArrayList<String> jobs = new ArrayList<>(parameters.length);

@@ -16,9 +16,11 @@ package de.textmode.lpdbox;
  * limitations under the License.
  */
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Socket;
 import java.nio.charset.Charset;
 
 /**
@@ -66,5 +68,23 @@ final class Util {
      */
     static void writeString(final String input, final OutputStream os) throws IOException {
         os.write(input.getBytes(ISO_8859_1));
+    }
+
+    /**
+     * Closes the {@link Closeable} quietly (means, all errors are catched and ignored).
+     */
+    static void closeQuietly(final Closeable closeable) {
+        try {
+            closeable.close();
+        } catch (final Throwable e) {
+            return; // Useless... just to make checkstyle happy...
+        }
+    }
+
+    /**
+     * Returns a {@link String} representation of the connected endpoint.
+     */
+    static String getClientString(final Socket socket) {
+        return socket.getRemoteSocketAddress().toString().substring(1);
     }
 }

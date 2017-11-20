@@ -80,8 +80,8 @@ final class ReceivePrinterJobCommandParser {
             }
 
             if (commandCode < COMMAND_CODE_ABORT_JOB || commandCode > COMMAND_CODE_RECEIVE_DATA_FILE) {
-                throw new IOException("Peer passed an unknwon second level command code 0x" 
-                        + Integer.toHexString(commandCode) 
+                throw new IOException("Client passed an unknwon second level command code 0x"
+                        + Integer.toHexString(commandCode)
                         + " for the command receive printer job");
             }
 
@@ -93,7 +93,7 @@ final class ReceivePrinterJobCommandParser {
                 final String[] parameters = parameterString.split("\\s+");
 
                 if (parameters.length != 2) {
-                    throw new IOException("Peer sent inavlid data: " + parameterString);
+                    throw new IOException("Client sent inavlid data: " + parameterString);
                 }
 
                 final long fileLength = Long.parseLong(parameters[0]);

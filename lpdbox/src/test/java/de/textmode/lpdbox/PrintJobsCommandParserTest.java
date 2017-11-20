@@ -20,12 +20,17 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import junit.framework.TestCase;
 
 /**
  * Unit-Tests of class {@link PrintJobsCommandParser}.
  */
 public final class PrintJobsCommandParserTest extends TestCase {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PrintJobsCommandParserTest.class);
 
     /**
      * Checks the happy flow.
@@ -40,7 +45,7 @@ public final class PrintJobsCommandParserTest extends TestCase {
         final ByteArrayInputStream is = new ByteArrayInputStream(data.toByteArray());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
-        PrintJobsCommandParser.parse(handler, is, os);
+        PrintJobsCommandParser.parse(LOGGER, handler, is, os);
 
         assertEquals("MY_QUEUE_NAME", handler.getPrinterQueueName());
         assertEquals(0, os.size());
@@ -60,10 +65,10 @@ public final class PrintJobsCommandParserTest extends TestCase {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
         try {
-            PrintJobsCommandParser.parse(handler, is, os);
+            PrintJobsCommandParser.parse(LOGGER, handler, is, os);
             fail();
         } catch (final IOException e) {
-            assertEquals("No queue name was provided.", e.getMessage());
+            assertEquals("No queue name was provided by the client", e.getMessage());
         }
     }
 
@@ -81,7 +86,7 @@ public final class PrintJobsCommandParserTest extends TestCase {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
         try {
-            PrintJobsCommandParser.parse(handler, is, os);
+            PrintJobsCommandParser.parse(LOGGER, handler, is, os);
             fail();
         } catch (final IOException e) {
             assertEquals(Util.ERROR_END_OF_STREAM, e.getMessage());

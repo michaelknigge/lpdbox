@@ -16,12 +16,13 @@ package de.textmode.lpdbox;
  * limitations under the License.
  */
 
-import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import org.slf4j.Logger;
 
@@ -32,15 +33,10 @@ import org.slf4j.Logger;
  */
 public final class LinePrinterDaemon implements Runnable {
 
-    private static final int COMMAND_CODE_PRINT_JOBS = 0x01;
-    private static final int COMMAND_CODE_RECEIVE_PRINTER_JOB = 0x02;
-    private static final int COMMAND_CODE_REPORT_QUEUE_STATE_SHORT = 0x03;
-    private static final int COMMAND_CODE_REPORT_QUEUE_STATE_LONG = 0x04;
-    private static final int COMMAND_CODE_REMOVE_PRINT_JOBS = 0x05;
-
     private final int portNumber;
     private final Logger logger;
     private final DaemonCommandHandlerFactory factory;
+    private final ExecutorService executorService;
 
     private volatile ServerSocket serverSocket;
     private volatile boolean isRunning;
@@ -50,7 +46,11 @@ public final class LinePrinterDaemon implements Runnable {
      * Constructor. Use the {@link de.textmode.lpdbox.LinePrinterDaemonBuilder} to
      * build the {@link LinePrinterDaemon}.
      */
-    LinePrinterDaemon(final int portNumber, final DaemonCommandHandlerFactory factory, final Logger logger) {
+    LinePrinterDaemon(
+            final int portNumber,
+            final int maxThreads,
+            final DaemonCommandHandlerFactory factory,
+            final Logger logger) {
 
         this.portNumber = portNumber;
         this.factory = factory;
@@ -59,6 +59,27 @@ public final class LinePrinterDaemon implements Runnable {
         this.serverSocket = null;
         this.isRunning = false;
         this.isShutdownRequested = false;
+
+        this.executorService = Executors.newFixedThreadPool(maxThreads, new ThreadFactory() {
+
+            @Override
+            public Thread newThread(final Runnable r) {
+                final Thread thread = Executors.defaultThreadFactory().newThread(r);
+                thread.setDaemon(true);
+                thread.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+                    @Override
+                    public void uncaughtException(final Thread t, final Throwable e) {
+                        LinePrinterDaemon.this.logger.error(
+                                "An unhandled error occurred in thread "
+                                        + t.getName()
+                                        + ": "
+                                        + e.getMessage());
+                    }
+                });
+
+                return thread;
+            }
+        });
     }
 
     /**
@@ -68,6 +89,8 @@ public final class LinePrinterDaemon implements Runnable {
      */
     public void startup() throws IOException {
         this.serverSocket = new ServerSocket(this.portNumber);
+        this.serverSocket.setReuseAddress(true);
+
         this.logger.info("Line Printer Daemon initialized (listening on port " + this.portNumber + ")");
     }
 
@@ -99,18 +122,7 @@ public final class LinePrinterDaemon implements Runnable {
         this.isRunning = false;
 
         if (this.serverSocket != null && !this.serverSocket.isClosed()) {
-            this.closeSocketQuietly(this.serverSocket);
-        }
-    }
-
-    /**
-     * Closes the {@link ServerSocket} quietly (means, all errors are catched and forgotten).
-     */
-    private void closeSocketQuietly(final Closeable closeable) {
-        try {
-            closeable.close();
-        } catch (final Throwable e) {
-            return; // Useless... just to make checkstyle happy...
+            Util.closeQuietly(this.serverSocket);
         }
     }
 
@@ -124,84 +136,33 @@ public final class LinePrinterDaemon implements Runnable {
             this.logger.debug("Waiting for incoming connection");
             final Socket connection = this.serverSocket.accept();
 
-            // TODO X: We should handle it in a separate Thread... maybe a ThreadPool...
-            final String peer = connection.getInetAddress().toString();
-            this.logger.info("Accepted connection from " + peer);
-
-            try {
-                this.handleConnection(connection);
-            } catch (final Throwable e) {
-                this.logger.error("An error occurred while handling connection from " + peer + ": " + e.getMessage());
-            } finally {
-                this.closeSocketQuietly(connection);
-            }
+            this.logger.info("Accepted connection from " + Util.getClientString(connection));
+            this.handleConnection(connection);
         }
     }
 
     /**
-     * Handles a connection from a client.
+     * Handles a connection from a client. The connection is handled in a separate thread.
      */
-    private void handleConnection(final Socket connection) throws IOException {
-        final String peer = connection.getInetAddress().toString();
-
-        // Read the first byte - it's value is used to determine the CommandParser that is
-        // responsible to parse the incoming data.
-        final InputStream is = connection.getInputStream();
-        final OutputStream os = connection.getOutputStream();
-
-        final int commandCode = is.read();
-        if (commandCode == -1) {
-            this.logger.error("Connection from " + peer + " is down");
-            return;
-        }
-
-        final DaemonCommandHandler handler = this.factory.create();
-        if (handler == null) {
-            this.logger.error("A daemon command handler could not be created");
-            return;
-        }
-
-        this.logger.debug("Peer " + peer + " sent command code " + Integer.toHexString(commandCode));
-
-        switch (commandCode) {
-        case COMMAND_CODE_PRINT_JOBS:
-            PrintJobsCommandParser.parse(this.logger, handler, is, os);
-            break;
-
-        case COMMAND_CODE_RECEIVE_PRINTER_JOB:
-            ReceivePrinterJobCommandParser.parse(this.logger, handler, is, os);
-            break;
-
-        case COMMAND_CODE_REPORT_QUEUE_STATE_SHORT:
-            ReportQueueStateShortCommandParser.parse(this.logger, handler, is, os);
-            break;
-
-        case COMMAND_CODE_REPORT_QUEUE_STATE_LONG:
-            ReportQueueStateLongCommandParser.parse(this.logger, handler, is, os);
-            break;
-
-        case COMMAND_CODE_REMOVE_PRINT_JOBS:
-            RemovePrintJobsCommandParser.parse(this.logger, handler, is, os);
-            break;
-
-        default:
-            this.logger.error("Peer " + peer + " passed an unknwon command code " + Integer.toHexString(commandCode));
-            break;
-        }
+    private void handleConnection(final Socket connection) {
+        this.executorService.execute(new LinePrinterDaemonConnectionHandler(
+                this.logger,
+                connection,
+                this.factory));
     }
 
     /**
      * Stops the {@link LinePrinterDaemon}. Note that this method will not wait until the
-     * {@link LinePrinterDaemon} has been stopped.
+     * {@link LinePrinterDaemon} has been stopped. It will also not wait until all threads (that
+     * handle client connections) are finished.
      */
     public void stop() {
         this.logger.info("Stopping line printer daemon");
-        this.closeSocketQuietly(this.serverSocket);
-        this.isShutdownRequested = true;
 
-        // TODO X: maybe we should also kill the client sockets so the server can *really* quit!
-        // or pass a "ServerState" to the Handlers so they can check if they should stop
-        // working...
+        this.isShutdownRequested = true;
+        this.executorService.shutdown();
+
+        Util.closeQuietly(this.serverSocket);
     }
 
     /**
@@ -210,10 +171,7 @@ public final class LinePrinterDaemon implements Runnable {
      * ended within that given timeout, <code>true</code> is returned, otherwise <code>false</code>.
      */
     public boolean stop(final long timeoutInMillis) throws InterruptedException {
-        this.logger.info("Stopping line printer daemon");
-
-        this.closeSocketQuietly(this.serverSocket);
-        this.isShutdownRequested = true;
+        this.stop();
 
         for (int ix = 0; ix < timeoutInMillis; ix += 100) {
             if (!this.isRunning) {

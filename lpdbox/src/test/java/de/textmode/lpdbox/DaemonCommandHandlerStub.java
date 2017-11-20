@@ -26,20 +26,20 @@ import java.util.List;
  */
 final class DaemonCommandHandlerStub implements DaemonCommandHandler {
 
-    private String printerQueueName;
+    private volatile String printerQueueName;
 
-    private String controlFileName;
-    private int controlFileLength;
-    private byte[] controlFileContent;
+    private volatile String controlFileName;
+    private volatile int controlFileLength;
+    private volatile byte[] controlFileContent;
 
-    private String dataFileName;
-    private long dataFileLength;
-    private byte[] dataFileContent;
+    private volatile String dataFileName;
+    private volatile long dataFileLength;
+    private volatile byte[] dataFileContent;
 
-    private String userName;
-    private List<String> jobList;
+    private volatile String userName;
+    private volatile List<String> jobList;
 
-    private boolean lockedQueue;
+    private volatile boolean lockedQueue;
 
 
     /**

@@ -22,12 +22,17 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import junit.framework.TestCase;
 
 /**
  * Unit-Tests of class {@link ReceivePrinterJobCommandParser}.
  */
 public final class ReceivePrinterJobCommandParserTest extends TestCase {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReceivePrinterJobCommandParserTest.class);
 
     private static final Charset ISO8859 = Charset.forName("ISO-8859-1");
     private static final char LINE_FEED = 0x0A;
@@ -52,7 +57,7 @@ public final class ReceivePrinterJobCommandParserTest extends TestCase {
         final ByteArrayInputStream is = new ByteArrayInputStream(data.toByteArray());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
-        ReceivePrinterJobCommandParser.parse(handler, is, os);
+        ReceivePrinterJobCommandParser.parse(LOGGER, handler, is, os);
 
         final byte[] acks = os.toByteArray();
         assertEquals(ackCount, acks.length);
@@ -75,7 +80,7 @@ public final class ReceivePrinterJobCommandParserTest extends TestCase {
         final ByteArrayInputStream is = new ByteArrayInputStream(data);
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
-        ReceivePrinterJobCommandParser.parse(handler, is, os);
+        ReceivePrinterJobCommandParser.parse(LOGGER, handler, is, os);
 
         final byte[] acks = os.toByteArray();
         assertEquals(ackCount, acks.length);
@@ -202,7 +207,7 @@ public final class ReceivePrinterJobCommandParserTest extends TestCase {
 
             fail();
         } catch (final IOException e) {
-            assertEquals("No queue name was provided.", e.getMessage());
+            assertEquals("No queue name was provided by the client", e.getMessage());
         }
     }
 
@@ -219,7 +224,7 @@ public final class ReceivePrinterJobCommandParserTest extends TestCase {
 
             fail();
         } catch (final IOException e) {
-            assertEquals("No queue name was provided.", e.getMessage());
+            assertEquals("No queue name was provided by the client", e.getMessage());
         }
     }
 
@@ -237,7 +242,7 @@ public final class ReceivePrinterJobCommandParserTest extends TestCase {
             fail();
         } catch (final IOException e) {
             assertEquals(
-                    "Peer passed an unknwon second level command code 0x7b for the command receive printer job",
+                    "Client passed an unknwon second level command code 0x7b for the command receive printer job",
                     e.getMessage());
         }
     }

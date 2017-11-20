@@ -20,12 +20,17 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import junit.framework.TestCase;
 
 /**
  * Unit-Tests of class {@link ReportQueueStateShortCommandParser}.
  */
 public final class ReportQueueStateShortCommandParserTest extends TestCase {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReportQueueStateShortCommandParserTest.class);
 
     /**
      * Performs the test and returns a {@link DaemonCommandHandlerStub} for checking
@@ -39,7 +44,7 @@ public final class ReportQueueStateShortCommandParserTest extends TestCase {
         final ByteArrayInputStream is = new ByteArrayInputStream(data.toByteArray());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
-        ReportQueueStateShortCommandParser.parse(handler, is, os);
+        ReportQueueStateShortCommandParser.parse(LOGGER, handler, is, os);
 
         assertEquals("this is a short list", os.toString("ISO-8859-1"));
 
@@ -74,7 +79,7 @@ public final class ReportQueueStateShortCommandParserTest extends TestCase {
             performTest("\n");
             fail();
         } catch (final IOException e) {
-            assertEquals("No queue name was provided.", e.getMessage());
+            assertEquals("No queue name was provided by the client", e.getMessage());
         }
     }
 
@@ -86,7 +91,7 @@ public final class ReportQueueStateShortCommandParserTest extends TestCase {
             performTest("   \n");
             fail();
         } catch (final IOException e) {
-            assertEquals("No queue name was provided.", e.getMessage());
+            assertEquals("No queue name was provided by the client", e.getMessage());
         }
     }
 }

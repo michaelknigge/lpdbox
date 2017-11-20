@@ -20,12 +20,17 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import junit.framework.TestCase;
 
 /**
  * Unit-Tests of class {@link RemovePrintJobsCommandParser}.
  */
 public final class RemovePrintJobsCommandParserTest extends TestCase {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RemovePrintJobsCommandParserTest.class);
 
     /**
      * Performs the test and returns a {@link DaemonCommandHandlerStub} for checking
@@ -41,7 +46,7 @@ public final class RemovePrintJobsCommandParserTest extends TestCase {
         final ByteArrayInputStream is = new ByteArrayInputStream(data.toByteArray());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
-        RemovePrintJobsCommandParser.parse(handler, is, os);
+        RemovePrintJobsCommandParser.parse(LOGGER, handler, is, os);
 
         assertEquals(0, os.size());
 
@@ -78,7 +83,7 @@ public final class RemovePrintJobsCommandParserTest extends TestCase {
             performTest("queue_abc\n");
             fail();
         } catch (final IOException e) {
-            assertEquals("Peer sent inavlid data: queue_abc", e.getMessage());
+            assertEquals("Client sent inavlid data: queue_abc", e.getMessage());
 
         }
     }
@@ -91,7 +96,7 @@ public final class RemovePrintJobsCommandParserTest extends TestCase {
             performTest("\n");
             fail();
         } catch (final IOException e) {
-            assertEquals("Peer sent inavlid data: ", e.getMessage());
+            assertEquals("Client sent inavlid data: ", e.getMessage());
         }
     }
 }

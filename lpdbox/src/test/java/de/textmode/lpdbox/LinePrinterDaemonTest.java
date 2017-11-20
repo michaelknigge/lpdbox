@@ -207,6 +207,7 @@ public final class LinePrinterDaemonTest extends TestCase {
 
         final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder(stubFactory)
                 .portNumber(PORT_NUMBER)
+                .maxThreads(1)
                 .build();
 
         final Thread thread = new Thread(daemon);
@@ -234,6 +235,15 @@ public final class LinePrinterDaemonTest extends TestCase {
             writeTo(s2.getOutputStream(), "016C700A");
         } finally {
             s2.close();
+        }
+
+        // If we stop the daemon now, the thread that handles the connection might not have
+        // been scheduled... So we check the received printer queue name in a loop....
+        for (int ix = 0; ix < 50; ++ix) {
+            if ("lp".equals(handler.getPrinterQueueName())) {
+                break;
+            }
+            Thread.sleep(50);
         }
 
         daemon.stop(5000);

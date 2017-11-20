@@ -26,10 +26,12 @@ import org.slf4j.LoggerFactory;
 public final class LinePrinterDaemonBuilder {
 
     private static final int DEFAULT_PORT_NUMBER = 515;
+    private static final int DEFAULT_MAX_THREADS = 10;
 
     private final DaemonCommandHandlerFactory factory;
 
     private int portNumber;
+    private int maxThreads;
     private Logger logger;
 
     /**
@@ -39,6 +41,8 @@ public final class LinePrinterDaemonBuilder {
         this.factory = factory;
 
         this.portNumber = DEFAULT_PORT_NUMBER;
+        this.maxThreads = DEFAULT_MAX_THREADS;
+
         this.logger = LoggerFactory.getLogger(LinePrinterDaemonBuilder.class);
     }
 
@@ -51,7 +55,7 @@ public final class LinePrinterDaemonBuilder {
     }
 
     /**
-     * Sets the {@link PrintJobsCommandHandler}.
+     * Sets the port number on which the {@link LinePrinterDaemon} should listen.
      */
     LinePrinterDaemonBuilder portNumber(final int value) {
         this.portNumber = value;
@@ -59,9 +63,17 @@ public final class LinePrinterDaemonBuilder {
     }
 
     /**
+     * Sets the maximum number of threads the {@link LinePrinterDaemon} should start.
+     */
+    LinePrinterDaemonBuilder maxThreads(final int value) {
+        this.maxThreads = value;
+        return this;
+    }
+
+    /**
      * Builds the {@link LinePrinterDaemon}.
      */
     LinePrinterDaemon build() {
-        return new LinePrinterDaemon(this.portNumber, this.factory, this.logger);
+        return new LinePrinterDaemon(this.portNumber, this.maxThreads, this.factory, this.logger);
     }
 }
