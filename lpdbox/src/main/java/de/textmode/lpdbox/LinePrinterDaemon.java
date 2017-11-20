@@ -162,6 +162,8 @@ public final class LinePrinterDaemon implements Runnable {
         this.isShutdownRequested = true;
         this.executorService.shutdown();
 
+        // Closing the server socket causes an exception on the
+        // ServerSocket.accept() method.... And this let's the server end...
         Util.closeQuietly(this.serverSocket);
     }
 
