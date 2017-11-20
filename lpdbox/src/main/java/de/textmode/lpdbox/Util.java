@@ -21,11 +21,21 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 
+/**
+ * Class with utility methods.
+ */
 final class Util {
 
+    /**
+     * Charset ISO-8859-1.
+     */
     static final Charset ISO_8859_1 = Charset.forName("ISO-8859-1");
 
-    static final String ERROR_END_OF_STREAM = "Unexpectedly reached the end of the data stream. The connection might be lost.";
+    /**
+     * Error Message for unexpectedly ending streams.
+     */
+    static final String ERROR_END_OF_STREAM = "Unexpectedly reached the end of the data stream. "
+            + "The connection might be lost.";
 
     private Util() {
     }
@@ -40,7 +50,7 @@ final class Util {
         int readByte = is.read();
         while (readByte != -1) {
             if (readByte == 0x0A) {
-                return sb.toString();
+                return sb.toString().trim();
             } else {
                 sb.append((char) readByte);
             }

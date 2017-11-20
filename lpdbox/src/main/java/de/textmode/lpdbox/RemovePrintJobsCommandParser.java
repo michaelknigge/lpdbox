@@ -25,31 +25,22 @@ import java.util.ArrayList;
  * The {@link RemovePrintJobsCommandParser} parses the daemon command "Remove print jobs"
  * and sends the response back to the client.
  */
-class RemovePrintJobsCommandParser implements CommandParser {
+final class RemovePrintJobsCommandParser {
 
-    private final RemovePrintJobsCommandHandler handler;
-
-    /**
-     * Constructor that initializes the {@link RemovePrintJobsCommandParser} with a
-     * non-op {@link RemovePrintJobsCommandHandler}.
-     */
-    RemovePrintJobsCommandParser() {
-        this.handler = new RemovePrintJobsCommandHandler() {
-        };
+    private RemovePrintJobsCommandParser() {
     }
 
     /**
-     * Constructor that initializes the {@link RemovePrintJobsCommandParser} with the
-     * given {@link RemovePrintJobsCommandHandler}.
+     * Parses the daemon command "Remove print jobs" and delegates the work to
+     * the {@link DaemonCommandHandler}.
      */
-    RemovePrintJobsCommandParser(final RemovePrintJobsCommandHandler handler) {
-        this.handler = handler;
-    }
+    static void parse(
+            final DaemonCommandHandler handler,
+            final InputStream is,
+            final OutputStream os) throws IOException {
 
-    @Override
-    public void parse(final InputStream is, final OutputStream os) throws IOException {
         final String parameterString = Util.readLine(is);
-        final String parameters[] = parameterString.split("\\s+");
+        final String[] parameters = parameterString.split("\\s+");
 
         if (parameters.length < 2) {
             throw new IOException("Peer sent inavlid data: " + parameterString);
@@ -60,6 +51,6 @@ class RemovePrintJobsCommandParser implements CommandParser {
             jobs.add(parameters[ix]);
         }
 
-        this.handler.handle(parameters[0], parameters[1], jobs);
+        handler.removeJobs(parameters[0], parameters[1], jobs);
     }
 }

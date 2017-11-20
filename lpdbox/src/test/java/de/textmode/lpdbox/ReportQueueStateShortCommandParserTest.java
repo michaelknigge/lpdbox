@@ -19,7 +19,6 @@ package de.textmode.lpdbox;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
 
 import junit.framework.TestCase;
 
@@ -28,38 +27,21 @@ import junit.framework.TestCase;
  */
 public final class ReportQueueStateShortCommandParserTest extends TestCase {
 
-    private final static String TEXT = "Dummy text from ReportQueueStateShortCommandParserTest\n";
-
-    private static class ReportQueueStateShortCommandHandlerStub implements ReportQueueStateShortCommandHandler {
-        private String queueName;
-        private List<String> jobs;
-
-        @Override
-        public String handle(final String queueName, final List<String> jobs) {
-            this.queueName = queueName;
-            this.jobs = jobs;
-
-            return TEXT;
-        }
-    };
-
     /**
-     * Performs the test and returns a {@link ReportQueueStateShortCommandHandlerStub} for checking
+     * Performs the test and returns a {@link DaemonCommandHandlerStub} for checking
      * the results.
      */
-    private static ReportQueueStateShortCommandHandlerStub performTest(final String input) throws Exception {
-        final ReportQueueStateShortCommandHandlerStub handler = new ReportQueueStateShortCommandHandlerStub();
-        final ReportQueueStateShortCommandParser parser = new ReportQueueStateShortCommandParser(handler);
-
+    private static DaemonCommandHandlerStub performTest(final String input) throws Exception {
+        final DaemonCommandHandlerStub handler = new DaemonCommandHandlerStub();
         final ByteArrayOutputStream data = new ByteArrayOutputStream();
         data.write(input.getBytes("ISO-8859-1"));
 
         final ByteArrayInputStream is = new ByteArrayInputStream(data.toByteArray());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
-        parser.parse(is, os);
+        ReportQueueStateShortCommandParser.parse(handler, is, os);
 
-        assertEquals(TEXT, os.toString("ISO-8859-1"));
+        assertEquals("this is a short list", os.toString("ISO-8859-1"));
 
         return handler;
     }
@@ -68,20 +50,20 @@ public final class ReportQueueStateShortCommandParserTest extends TestCase {
      * Without a list of jobs.
      */
     public void testNoList() throws Exception {
-        final ReportQueueStateShortCommandHandlerStub handler = performTest("my_queue\n");
-        assertEquals("my_queue", handler.queueName);
-        assertTrue(handler.jobs.isEmpty());
+        final DaemonCommandHandlerStub handler = performTest("my_queue\n");
+        assertEquals("my_queue", handler.getPrinterQueueName());
+        assertTrue(handler.getJobs().isEmpty());
     }
 
     /**
      * With a list of jobs.
      */
     public void testWithList() throws Exception {
-        final ReportQueueStateShortCommandHandlerStub handler = performTest("queue_abc 1 x abc\n");
-        assertEquals("queue_abc", handler.queueName);
-        assertEquals("1", handler.jobs.get(0));
-        assertEquals("x", handler.jobs.get(1));
-        assertEquals("abc", handler.jobs.get(2));
+        final DaemonCommandHandlerStub handler = performTest("queue_abc 1 x abc\n");
+        assertEquals("queue_abc", handler.getPrinterQueueName());
+        assertEquals("1", handler.getJobs().get(0));
+        assertEquals("x", handler.getJobs().get(1));
+        assertEquals("abc", handler.getJobs().get(2));
     }
 
     /**
@@ -96,4 +78,15 @@ public final class ReportQueueStateShortCommandParserTest extends TestCase {
         }
     }
 
+    /**
+     * Without an queue name (just spaces).
+     */
+    public void testInvalidQueueName() throws Exception {
+        try {
+            performTest("   \n");
+            fail();
+        } catch (final IOException e) {
+            assertEquals("No queue name was provided.", e.getMessage());
+        }
+    }
 }

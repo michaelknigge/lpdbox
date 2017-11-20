@@ -25,44 +25,31 @@ import java.util.ArrayList;
  * The {@link ReportQueueStateShortCommandParser} parses the daemon command "Send queue state (short)"
  * and sends the response back to the client.
  */
-class ReportQueueStateShortCommandParser implements CommandParser {
+final class ReportQueueStateShortCommandParser {
 
-    private final ReportQueueStateShortCommandHandler handler;
-
-    /**
-     * Constructor that initializes the {@link ReportQueueStateShortCommandParser} with a
-     * non-op {@link ReportQueueStateShortCommandHandler}.
-     */
-    ReportQueueStateShortCommandParser() {
-        this.handler = new ReportQueueStateShortCommandHandler() {
-        };
+    private ReportQueueStateShortCommandParser() {
     }
 
     /**
-     * Constructor that initializes the {@link ReportQueueStateShortCommandParser} with the
-     * given {@link ReportQueueStateShortCommandHandler}.
+     * Parses the daemon command "Send queue state (short)" and delegates the work to
+     * the {@link DaemonCommandHandler}.
      */
-    ReportQueueStateShortCommandParser(final ReportQueueStateShortCommandHandler handler) {
-        this.handler = handler;
-    }
+    static void parse(
+            final DaemonCommandHandler handler,
+            final InputStream is,
+            final OutputStream os) throws IOException {
 
-    @Override
-    public void parse(final InputStream is, final OutputStream os) throws IOException {
         final String parameterString = Util.readLine(is);
         if (parameterString.isEmpty()) {
             throw new IOException("No queue name was provided.");
         }
 
-        final String parameters[] = parameterString.split("\\s+");
-        if (parameters.length < 1) {
-            throw new IOException("Peer sent invalid data: " + parameterString);
-        }
-
+        final String[] parameters = parameterString.split("\\s+");
         final ArrayList<String> jobs = new ArrayList<>(parameters.length - 1);
         for (int ix = 1; ix < parameters.length; ++ix) {
             jobs.add(parameters[ix]);
         }
 
-        Util.writeString(this.handler.handle(parameters[0], jobs), os);
+        Util.writeString(handler.sendQueueStateShort(parameters[0], jobs), os);
     }
 }

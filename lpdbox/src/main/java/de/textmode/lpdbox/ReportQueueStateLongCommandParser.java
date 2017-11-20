@@ -19,54 +19,38 @@ package de.textmode.lpdbox;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 /**
  * The {@link ReportQueueStateLongCommandParser} parses the daemon command "Send queue state (long)"
  * and sends the response back to the client.
  */
-class ReportQueueStateLongCommandParser implements CommandParser {
+final class ReportQueueStateLongCommandParser {
 
-    final Charset ISO_8859_1 = Charset.forName("ISO-8859-1");
-
-    private final ReportQueueStateLongCommandHandler handler;
-
-    /**
-     * Constructor that initializes the {@link ReportQueueStateLongCommandParser} with a
-     * non-op {@link ReportQueueStateLongCommandHandler}.
-     */
-    ReportQueueStateLongCommandParser() {
-        this.handler = new ReportQueueStateLongCommandHandler() {
-        };
+    private ReportQueueStateLongCommandParser() {
     }
 
     /**
-     * Constructor that initializes the {@link ReportQueueStateLongCommandParser} with the
-     * given {@link ReportQueueStateLongCommandHandler}.
+     * Parses the daemon command "Send queue state (long)" and delegates the work to
+     * the {@link DaemonCommandHandler}.
      */
-    ReportQueueStateLongCommandParser(final ReportQueueStateLongCommandHandler handler) {
-        this.handler = handler;
-    }
+    static void parse(
+            final DaemonCommandHandler handler,
+            final InputStream is,
+            final OutputStream os) throws IOException {
 
-    @Override
-    public void parse(final InputStream is, final OutputStream os) throws IOException {
         final String parameterString = Util.readLine(is);
         if (parameterString.isEmpty()) {
             throw new IOException("No queue name was provided.");
         }
 
-        final String parameters[] = parameterString.split("\\s+");
-        if (parameters.length < 1) {
-            throw new IOException("Peer sent invalid data: " + parameterString);
-        }
-
+        final String[] parameters = parameterString.split("\\s+");
         final ArrayList<String> jobs = new ArrayList<>(parameters.length - 1);
         for (int ix = 1; ix < parameters.length; ++ix) {
             jobs.add(parameters[ix]);
         }
 
-        Util.writeString(this.handler.handle(parameters[0], jobs), os);
+        Util.writeString(handler.sendQueueStateLong(parameters[0], jobs), os);
     }
 
 }

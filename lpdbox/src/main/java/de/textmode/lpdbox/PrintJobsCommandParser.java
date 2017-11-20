@@ -24,34 +24,25 @@ import java.io.OutputStream;
  * The {@link PrintJobsCommandParser} parses the daemon command "Print any waiting jobs"
  * and sends the response back to the client.
  */
-class PrintJobsCommandParser implements CommandParser {
+final class PrintJobsCommandParser {
 
-    private final PrintJobsCommandHandler handler;
-
-    /**
-     * Constructor that initializes the {@link PrintJobsCommandParser} with a
-     * non-op {@link PrintJobsCommandHandler}.
-     */
-    PrintJobsCommandParser() {
-        this.handler = new PrintJobsCommandHandler() {
-        };
+    private PrintJobsCommandParser() {
     }
 
     /**
-     * Constructor that initializes the {@link PrintJobsCommandParser} with the
-     * given {@link PrintJobsCommandHandler}.
+     * Parses the daemon command "Print any waiting jobs" and delegates the work to
+     * the {@link DaemonCommandHandler}.
      */
-    PrintJobsCommandParser(final PrintJobsCommandHandler handler) {
-        this.handler = handler;
-    }
+    static void parse(
+            final DaemonCommandHandler handler,
+            final InputStream is,
+            final OutputStream os) throws IOException {
 
-    @Override
-    public void parse(final InputStream is, final OutputStream os) throws IOException {
         final String queueName = Util.readLine(is);
         if (queueName.isEmpty()) {
             throw new IOException("No queue name was provided.");
         }
 
-        this.handler.handle(queueName);
+        handler.printJobs(queueName);
     }
 }

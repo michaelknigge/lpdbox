@@ -19,7 +19,6 @@ package de.textmode.lpdbox;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
 
 import junit.framework.TestCase;
 
@@ -28,26 +27,13 @@ import junit.framework.TestCase;
  */
 public final class RemovePrintJobsCommandParserTest extends TestCase {
 
-    private static class RemovePrintJobsCommandHandlerStub implements RemovePrintJobsCommandHandler {
-        private String queueName;
-        private String agent;
-        private List<String> jobs;
-
-        @Override
-        public void handle(final String queueName, final String agent, final List<String> jobs) {
-            this.queueName = queueName;
-            this.agent = agent;
-            this.jobs = jobs;
-        }
-    };
-
     /**
-     * Performs the test and returns a {@link RemovePrintJobsCommandHandlerStub} for checking
+     * Performs the test and returns a {@link DaemonCommandHandlerStub} for checking
      * the results.
      */
-    private static RemovePrintJobsCommandHandlerStub performTest(final String input) throws Exception {
-        final RemovePrintJobsCommandHandlerStub handler = new RemovePrintJobsCommandHandlerStub();
-        final RemovePrintJobsCommandParser parser = new RemovePrintJobsCommandParser(handler);
+    private static DaemonCommandHandlerStub performTest(final String input) throws Exception {
+
+        final DaemonCommandHandlerStub handler = new DaemonCommandHandlerStub();
 
         final ByteArrayOutputStream data = new ByteArrayOutputStream();
         data.write(input.getBytes("ISO-8859-1"));
@@ -55,7 +41,7 @@ public final class RemovePrintJobsCommandParserTest extends TestCase {
         final ByteArrayInputStream is = new ByteArrayInputStream(data.toByteArray());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
-        parser.parse(is, os);
+        RemovePrintJobsCommandParser.parse(handler, is, os);
 
         assertEquals(0, os.size());
 
@@ -66,22 +52,22 @@ public final class RemovePrintJobsCommandParserTest extends TestCase {
      * Without a list of jobs.
      */
     public void testNoList() throws Exception {
-        final RemovePrintJobsCommandHandlerStub handler = performTest("my_queue root\n");
-        assertEquals("my_queue", handler.queueName);
-        assertEquals("root", handler.agent);
-        assertTrue(handler.jobs.isEmpty());
+        final DaemonCommandHandlerStub handler = performTest("my_queue root\n");
+        assertEquals("my_queue", handler.getPrinterQueueName());
+        assertEquals("root", handler.getUserName());
+        assertTrue(handler.getJobs().isEmpty());
     }
 
     /**
      * With a list of jobs.
      */
     public void testWithList() throws Exception {
-        final RemovePrintJobsCommandHandlerStub handler = performTest("queue_abc foo 1 x abc\n");
-        assertEquals("queue_abc", handler.queueName);
-        assertEquals("foo", handler.agent);
-        assertEquals("1", handler.jobs.get(0));
-        assertEquals("x", handler.jobs.get(1));
-        assertEquals("abc", handler.jobs.get(2));
+        final DaemonCommandHandlerStub handler = performTest("queue_abc foo 1 x abc\n");
+        assertEquals("queue_abc", handler.getPrinterQueueName());
+        assertEquals("foo", handler.getUserName());
+        assertEquals("1", handler.getJobs().get(0));
+        assertEquals("x", handler.getJobs().get(1));
+        assertEquals("abc", handler.getJobs().get(2));
     }
 
     /**

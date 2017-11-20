@@ -27,22 +27,12 @@ import junit.framework.TestCase;
  */
 public final class PrintJobsCommandParserTest extends TestCase {
 
-    private static class PrintJobsCommandHandlerStub implements PrintJobsCommandHandler {
-        private String queueName;
-
-        @Override
-        public void handle(final String queueName) {
-            this.queueName = queueName;
-        }
-    };
-
     /**
      * Checks the happy flow.
      */
     public void testHappyFlow() throws Exception {
 
-        final PrintJobsCommandHandlerStub handler = new PrintJobsCommandHandlerStub();
-        final PrintJobsCommandParser parser = new PrintJobsCommandParser(handler);
+        final DaemonCommandHandlerStub handler = new DaemonCommandHandlerStub();
 
         final ByteArrayOutputStream data = new ByteArrayOutputStream();
         data.write("MY_QUEUE_NAME\n".getBytes("ISO-8859-1"));
@@ -50,9 +40,9 @@ public final class PrintJobsCommandParserTest extends TestCase {
         final ByteArrayInputStream is = new ByteArrayInputStream(data.toByteArray());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
-        parser.parse(is, os);
+        PrintJobsCommandParser.parse(handler, is, os);
 
-        assertEquals("MY_QUEUE_NAME", handler.queueName);
+        assertEquals("MY_QUEUE_NAME", handler.getPrinterQueueName());
         assertEquals(0, os.size());
     }
 
@@ -61,8 +51,7 @@ public final class PrintJobsCommandParserTest extends TestCase {
      */
     public void testMissingQueueName() throws Exception {
 
-        final PrintJobsCommandHandlerStub handler = new PrintJobsCommandHandlerStub();
-        final PrintJobsCommandParser parser = new PrintJobsCommandParser(handler);
+        final DaemonCommandHandlerStub handler = new DaemonCommandHandlerStub();
 
         final ByteArrayOutputStream data = new ByteArrayOutputStream();
         data.write("\n".getBytes("ISO-8859-1"));
@@ -71,7 +60,7 @@ public final class PrintJobsCommandParserTest extends TestCase {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
         try {
-            parser.parse(is, os);
+            PrintJobsCommandParser.parse(handler, is, os);
             fail();
         } catch (final IOException e) {
             assertEquals("No queue name was provided.", e.getMessage());
@@ -83,8 +72,7 @@ public final class PrintJobsCommandParserTest extends TestCase {
      */
     public void testMissingLineFeed() throws Exception {
 
-        final PrintJobsCommandHandlerStub handler = new PrintJobsCommandHandlerStub();
-        final PrintJobsCommandParser parser = new PrintJobsCommandParser(handler);
+        final DaemonCommandHandlerStub handler = new DaemonCommandHandlerStub();
 
         final ByteArrayOutputStream data = new ByteArrayOutputStream();
         data.write("FOO".getBytes("ISO-8859-1"));
@@ -93,7 +81,7 @@ public final class PrintJobsCommandParserTest extends TestCase {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
         try {
-            parser.parse(is, os);
+            PrintJobsCommandParser.parse(handler, is, os);
             fail();
         } catch (final IOException e) {
             assertEquals(Util.ERROR_END_OF_STREAM, e.getMessage());

@@ -1,5 +1,21 @@
 package de.textmode.lpdbox;
 
+/*
+ * Copyright 2017 Michael Knigge
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -15,32 +31,8 @@ import junit.framework.TestCase;
  * Unit-Tests of class {@link LinePrinterDaemon}.
  */
 public final class LinePrinterDaemonTest extends TestCase {
-    
+
     private static final int PORT_NUMBER = 1515;
-
-    private static class ReceivePrinterJobCommandHandlerStub implements ReceivePrinterJobCommandHandler {
-        private PrintJob printJob;
-        private byte[] dataFileContent;
-
-        @Override
-        public void handle(final PrintJob printJob, final InputStream dataFileStream) throws IOException {
-
-            this.printJob = printJob;
-            this.dataFileContent = new byte[(int) this.printJob.getDataFileLength()];
-
-            final int read = dataFileStream.read(this.dataFileContent);
-            assertEquals(this.printJob.getDataFileLength(), read);
-        }
-    };
-    
-    private static class PrintJobsCommandHandlerStub implements PrintJobsCommandHandler {
-        private volatile String queueName;
-        
-        @Override
-        public void handle(final String qn) {
-            this.queueName = qn;
-        }
-    };
 
     /**
      * Converts a hex string to a byte array.
@@ -62,20 +54,20 @@ public final class LinePrinterDaemonTest extends TestCase {
         final int ack = is.read();
         assertEquals(0, ack);
     }
-    
+
     /**
      * "Replays" a real-world examlple.
      */
     public void testRealWorldExample() throws Exception {
-        final ReceivePrinterJobCommandHandlerStub handler = new ReceivePrinterJobCommandHandlerStub();
+        final DaemonCommandHandlerStubFactory stubFactory = new DaemonCommandHandlerStubFactory();
+        final DaemonCommandHandlerStub handler = stubFactory.getStubHandler();
 
-        final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder()
+        final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder(stubFactory)
                 .portNumber(PORT_NUMBER)
-                .receiveJobCommandHandler(handler)
                 .build();
 
         assertFalse(daemon.isRunning());
-        
+
         final Thread thread = new Thread(daemon);
         thread.setDaemon(true);
 
@@ -85,7 +77,6 @@ public final class LinePrinterDaemonTest extends TestCase {
         thread.start();
 
         final Socket s = new Socket("localhost", PORT_NUMBER);
-        assertTrue(daemon.isRunning());
 
         try {
             final InputStream is = s.getInputStream();
@@ -97,6 +88,8 @@ public final class LinePrinterDaemonTest extends TestCase {
 
             // LPD tells us "yeah, continue...."
             this.readPositiveAcknowledgement(is);
+
+            assertTrue(daemon.isRunning());
 
             // Sub-Command : 0x02 (Receive control file)
             // Length      : 0000000383
@@ -131,7 +124,8 @@ public final class LinePrinterDaemonTest extends TestCase {
             ctrl.append("2d6f663d4631535444310a");
             ctrl.append("2d6f6e613d572e42455254484f4c442e3a323836390a");
             ctrl.append(
-                    "2d6f655f74693d45333835413241333430433439394134383339323430433238353939413338383936393338343430443744390a");
+                    "2d6f655f74693d45333835413241333430433439"
+                            + "394134383339323430433238353939413338383936393338343430443744390a");
 
             // Now write the control file and the 0x00 "finalizer".
             writeTo(os, ctrl.toString() + "00");
@@ -147,7 +141,7 @@ public final class LinePrinterDaemonTest extends TestCase {
             // LPD tells us "yeah, continue...."
             this.readPositiveAcknowledgement(is);
 
-            // Now super simple "linemode" data follows. Just foer data records, each 15 bytes long (including
+            // Now super simple "linemode" data follows. Just four data records, each 15 bytes long (including
             // an prefixed two byte record length field). Here too, after the data an 0x00 is sent as an
             // indication that the file being sent is complete.
             final StringBuilder records = new StringBuilder();
@@ -164,13 +158,13 @@ public final class LinePrinterDaemonTest extends TestCase {
             this.readPositiveAcknowledgement(is);
 
             // ok, now as we are here, we have successfully created an print job! Now check if
-            // the ReceivePrinterJobCommandHandler has been called correctly...
-            assertEquals("NW_BETA93_EINZELBLATT", handler.printJob.getQueueName());
+            // the DaemonCommandHandler has been called correctly...
+            assertEquals("NW_BETA93_EINZELBLATT", handler.getPrinterQueueName());
 
-            assertEquals("cfA963SYSB", handler.printJob.getControlFileName());
-            assertTrue(Arrays.equals(hexToByteArray(ctrl.toString()), handler.printJob.getControlFileContent()));
+            assertEquals("cfA963SYSB", handler.getControlFileName());
+            assertTrue(Arrays.equals(hexToByteArray(ctrl.toString()), handler.getControlFileContent()));
 
-            final String[] entries = handler.printJob.getControlFileContentAsArray();
+            final String[] entries = handler.getControlFileContentAsArray();
             assertEquals("HSYSB", entries[0]);
             assertEquals("PVPSEXT90", entries[1]);
             assertEquals("ldfA963SYSB", entries[2]);
@@ -193,9 +187,9 @@ public final class LinePrinterDaemonTest extends TestCase {
             assertEquals("-ona=W.BERTHOLD.:2869", entries[19]);
             assertEquals("-oe_ti=E385A2A340C499A4839240C28599A38896938440D7D9", entries[20]);
 
-            assertEquals(60, handler.printJob.getDataFileLength());
-            assertEquals("dfA963SYSB", handler.printJob.getDataFileName());
-            assertTrue(Arrays.equals(hexToByteArray(records.toString()), handler.dataFileContent));
+            assertEquals(60, handler.getDataFileLength());
+            assertEquals("dfA963SYSB", handler.getDataFileName());
+            assertTrue(Arrays.equals(hexToByteArray(records.toString()), handler.getDataFileContent()));
 
         } finally {
             s.close();
@@ -207,12 +201,12 @@ public final class LinePrinterDaemonTest extends TestCase {
      * Sends an invalid control code.
      */
     public void testInvalidControlCode() throws Exception {
-        
-        final PrintJobsCommandHandlerStub handler = new PrintJobsCommandHandlerStub();
-        
-        final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder()
+
+        final DaemonCommandHandlerStubFactory stubFactory = new DaemonCommandHandlerStubFactory();
+        final DaemonCommandHandlerStub handler = stubFactory.getStubHandler();
+
+        final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder(stubFactory)
                 .portNumber(PORT_NUMBER)
-                .printJobsCommandHandler(handler)
                 .build();
 
         final Thread thread = new Thread(daemon);
@@ -224,15 +218,16 @@ public final class LinePrinterDaemonTest extends TestCase {
         final Socket s = new Socket("localhost", PORT_NUMBER);
         try {
             writeTo(s.getOutputStream(), "000000000a");
-            
+
             // On my Windows box I get a -1 when doing a read on the socket....
             assertEquals(-1, s.getInputStream().read());
-        } catch (SocketException e) {
+        } catch (final SocketException e) {
             // .... and on Linux a SocketException is thrown on the read()...
+            assertFalse(e.getMessage().isEmpty());
         } finally {
             s.close();
         }
-        
+
         // The server is still running and should accept and handle connections - we check this now
         final Socket s2 = new Socket("localhost", PORT_NUMBER);
         try {
@@ -240,8 +235,8 @@ public final class LinePrinterDaemonTest extends TestCase {
         } finally {
             s2.close();
         }
-        
+
         daemon.stop(5000);
-        assertEquals("lp", handler.queueName);
+        assertEquals("lp", handler.getPrinterQueueName());
     }
 }

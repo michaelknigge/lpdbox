@@ -32,15 +32,15 @@ import org.slf4j.Logger;
  */
 public final class LinePrinterDaemon implements Runnable {
 
-    final static int COMMAND_CODE_PRINT_JOBS = 0x01;
-    final static int COMMAND_CODE_RECEIVE_PRINTER_JOB = 0x02;
-    final static int COMMAND_CODE_REPORT_QUEUE_STATE_SHORT = 0x03;
-    final static int COMMAND_CODE_REPORT_QUEUE_STATE_LONG = 0x04;
-    final static int COMMAND_CODE_REMOVE_PRINT_JOBS = 0x05;
+    private static final int COMMAND_CODE_PRINT_JOBS = 0x01;
+    private static final int COMMAND_CODE_RECEIVE_PRINTER_JOB = 0x02;
+    private static final int COMMAND_CODE_REPORT_QUEUE_STATE_SHORT = 0x03;
+    private static final int COMMAND_CODE_REPORT_QUEUE_STATE_LONG = 0x04;
+    private static final int COMMAND_CODE_REMOVE_PRINT_JOBS = 0x05;
 
     private final int portNumber;
     private final Logger logger;
-    private final CommandParser[] parsers;
+    private final DaemonCommandHandlerFactory factory;
 
     private volatile ServerSocket serverSocket;
     private volatile boolean isRunning;
@@ -50,10 +50,10 @@ public final class LinePrinterDaemon implements Runnable {
      * Constructor. Use the {@link de.textmode.lpdbox.LinePrinterDaemonBuilder} to
      * build the {@link LinePrinterDaemon}.
      */
-    LinePrinterDaemon(final int portNumber, final CommandParser[] parsers, final Logger logger) {
+    LinePrinterDaemon(final int portNumber, final DaemonCommandHandlerFactory factory, final Logger logger) {
 
         this.portNumber = portNumber;
-        this.parsers = parsers;
+        this.factory = factory;
         this.logger = logger;
 
         this.serverSocket = null;
@@ -110,6 +110,7 @@ public final class LinePrinterDaemon implements Runnable {
         try {
             closeable.close();
         } catch (final Throwable e) {
+            return; // Useless... just to make checkstyle happy...
         }
     }
 
@@ -118,12 +119,12 @@ public final class LinePrinterDaemon implements Runnable {
      */
     private void handleConnections() throws IOException {
         this.isRunning = true;
-        
+
         while (!this.isShutdownRequested) {
             this.logger.debug("Waiting for incoming connection");
             final Socket connection = this.serverSocket.accept();
 
-            // TODO: We should handle it in a separate Thread... maybe a ThreadPool...
+            // TODO X: We should handle it in a separate Thread... maybe a ThreadPool...
             final String peer = connection.getInetAddress().toString();
             this.logger.info("Accepted connection from " + peer);
 
@@ -154,19 +155,37 @@ public final class LinePrinterDaemon implements Runnable {
             return;
         }
 
-        if (commandCode < COMMAND_CODE_PRINT_JOBS || commandCode > COMMAND_CODE_REMOVE_PRINT_JOBS) {
+        final DaemonCommandHandler handler = this.factory.create();
+        if (handler == null) {
+            this.logger.error("A daemon command handler could not be created.");
+            return;
+        }
+
+        switch (commandCode) {
+        case COMMAND_CODE_PRINT_JOBS:
+            PrintJobsCommandParser.parse(handler, is, os);
+            break;
+
+        case COMMAND_CODE_RECEIVE_PRINTER_JOB:
+            ReceivePrinterJobCommandParser.parse(handler, is, os);
+            break;
+
+        case COMMAND_CODE_REPORT_QUEUE_STATE_SHORT:
+            ReportQueueStateShortCommandParser.parse(handler, is, os);
+            break;
+
+        case COMMAND_CODE_REPORT_QUEUE_STATE_LONG:
+            ReportQueueStateLongCommandParser.parse(handler, is, os);
+            break;
+
+        case COMMAND_CODE_REMOVE_PRINT_JOBS:
+            RemovePrintJobsCommandParser.parse(handler, is, os);
+            break;
+
+        default:
             this.logger.error("Peer " + peer + " passed an unknwon command code " + Integer.toHexString(commandCode));
-            return;
+            break;
         }
-
-        final CommandParser parser = this.parsers[commandCode];
-        if (parser == null) {
-            this.logger.error(
-                    "Unable to parse command code " + Integer.toHexString(commandCode) + " due to an internal error");
-            return;
-        }
-
-        parser.parse(is, os);
     }
 
     /**
@@ -177,11 +196,11 @@ public final class LinePrinterDaemon implements Runnable {
         this.closeSocketQuietly(this.serverSocket);
         this.isShutdownRequested = true;
 
-        // TODO: maybe we should also kill the client sockets so the server can *really* quit!
+        // TODO X: maybe we should also kill the client sockets so the server can *really* quit!
         // or pass a "ServerState" to the Handlers so they can check if they should stop
         // working...
     }
-    
+
     /**
      * Stops the {@link LinePrinterDaemon}. This method waits up to the given milliseconds until
      * the {@link LinePrinterDaemon} has been stopped. If the {@link LinePrinterDaemon} has been
@@ -190,14 +209,14 @@ public final class LinePrinterDaemon implements Runnable {
     public boolean stop(final long timeoutInMillis) throws InterruptedException {
         this.closeSocketQuietly(this.serverSocket);
         this.isShutdownRequested = true;
-        
-        for (int ix=0; ix<timeoutInMillis; ix+=100) {
+
+        for (int ix = 0; ix < timeoutInMillis; ix += 100) {
             if (!this.isRunning) {
                 return true;
             }
             Thread.sleep(100);
         }
-        
+
         return false;
     }
 }
