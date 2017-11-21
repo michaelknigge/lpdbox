@@ -89,10 +89,12 @@ public final class LinePrinterDaemon implements Runnable {
      * port number is available).
      */
     public void startup() throws IOException {
-        this.serverSocket = new ServerSocket(this.portNumber);
-        this.serverSocket.setReuseAddress(true);
+        if (this.serverSocket == null) {
+            this.serverSocket = new ServerSocket(this.portNumber);
+            this.serverSocket.setReuseAddress(true);
 
-        this.logger.info("Line Printer Daemon initialized (listening on port " + this.portNumber + ")");
+            this.logger.info("Line Printer Daemon initialized (listening on port " + this.portNumber + ")");
+        }
     }
 
     /**

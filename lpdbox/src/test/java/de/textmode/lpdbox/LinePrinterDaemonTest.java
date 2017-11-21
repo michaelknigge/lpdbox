@@ -222,10 +222,9 @@ public final class LinePrinterDaemonTest extends TestCase {
                 .maxThreads(1)
                 .build();
 
-        // DO NOT INVOKE "daemon.startup()" here to check if it is invoked implicitly.
-
         final Thread thread = new Thread(daemon);
         thread.setDaemon(true);
+        daemon.startup();
         thread.start();
 
         // First we send an invalid control code - the server will close the connection...
@@ -276,6 +275,7 @@ public final class LinePrinterDaemonTest extends TestCase {
 
         final Thread thread = new Thread(daemon);
         thread.setDaemon(true);
+        daemon.startup();
         thread.start();
 
         final Socket s = new Socket("localhost", PORT_NUMBER);
@@ -334,6 +334,7 @@ public final class LinePrinterDaemonTest extends TestCase {
 
         final Thread thread = new Thread(daemon);
         thread.setDaemon(true);
+        daemon.startup();
         thread.start();
 
         final Socket s = new Socket("localhost", PORT_NUMBER);
@@ -410,6 +411,7 @@ public final class LinePrinterDaemonTest extends TestCase {
 
         final Thread thread = new Thread(daemon);
         thread.setDaemon(true);
+        daemon.startup();
         thread.start();
 
         final Socket s = new Socket("localhost", PORT_NUMBER);
@@ -473,6 +475,7 @@ public final class LinePrinterDaemonTest extends TestCase {
 
         final Thread thread = new Thread(daemon);
         thread.setDaemon(true);
+        daemon.startup();
         thread.start();
 
         final Socket s = new Socket("localhost", PORT_NUMBER);
