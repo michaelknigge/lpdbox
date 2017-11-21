@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.nio.charset.Charset;
 
 /**
@@ -85,6 +86,7 @@ final class Util {
      * Returns a {@link String} representation of the connected endpoint.
      */
     static String getClientString(final Socket socket) {
-        return socket.getRemoteSocketAddress().toString().substring(1);
+        final SocketAddress remote = socket.getRemoteSocketAddress();
+        return remote == null ? "unknown" : remote.toString().substring(1);
     }
 }

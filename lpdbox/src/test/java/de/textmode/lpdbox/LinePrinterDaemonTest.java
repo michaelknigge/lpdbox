@@ -314,9 +314,7 @@ public final class LinePrinterDaemonTest extends TestCase {
             assertFalse(handler.isControlFileComplete());
             assertTrue(handler.isEnded());
         } finally {
-            if (!s.isClosed()) {
-                s.close();
-            }
+            s.close();
             daemon.stop(5000);
         }
     }
@@ -391,9 +389,7 @@ public final class LinePrinterDaemonTest extends TestCase {
             assertFalse(handler.isDataFileComplete());
             assertTrue(handler.isEnded());
         } finally {
-            if (!s.isClosed()) {
-                s.close();
-            }
+            s.close();
             daemon.stop(5000);
         }
     }
@@ -455,9 +451,7 @@ public final class LinePrinterDaemonTest extends TestCase {
             assertFalse(handler.isDataFileComplete());
             assertTrue(handler.isEnded());
         } finally {
-            if (!s.isClosed()) {
-                s.close();
-            }
+            s.close();
             daemon.stop(5000);
         }
     }
@@ -495,11 +489,8 @@ public final class LinePrinterDaemonTest extends TestCase {
 
             assertTrue(daemon.isRunning());
         } finally {
-            if (!s.isClosed()) {
-                s.close();
-            }
+            s.close();
             daemon.stop(5000);
         }
     }
-
 }
