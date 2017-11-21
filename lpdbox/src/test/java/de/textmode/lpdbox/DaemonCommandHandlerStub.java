@@ -40,6 +40,10 @@ final class DaemonCommandHandlerStub implements DaemonCommandHandler {
     private volatile List<String> jobList;
 
     private volatile boolean lockedQueue;
+    private volatile boolean isAborted;
+    private volatile boolean isEnded;
+    private volatile boolean isDataFileComplete;
+    private volatile boolean isControlFileComplete;
 
 
     /**
@@ -64,6 +68,34 @@ final class DaemonCommandHandlerStub implements DaemonCommandHandler {
      */
     void unlockQueue() {
         this.lockedQueue = false;
+    }
+
+    /**
+     * Checks if the "abortPrinterJob()" method has been called.
+     */
+    boolean isAborted() {
+        return this.isAborted;
+    }
+
+    /**
+     * Checks if the "endPrinterJob()" method has been called.
+     */
+    boolean isEnded() {
+        return this.isEnded;
+    }
+
+    /**
+     * Checks if the data file has been received completely.
+     */
+    boolean isDataFileComplete() {
+        return this.isDataFileComplete;
+    }
+
+    /**
+     * Checks if the control file has been received completely.
+     */
+    boolean isControlFileComplete() {
+        return this.isControlFileComplete;
     }
 
     /**
@@ -158,7 +190,9 @@ final class DaemonCommandHandlerStub implements DaemonCommandHandler {
         this.controlFileLength = length;
 
         this.controlFileContent = new byte[length];
-        return is.read(this.controlFileContent) == length;
+        this.isControlFileComplete = is.read(this.controlFileContent) == length;
+
+        return this.isControlFileComplete;
     }
 
     @Override
@@ -167,15 +201,19 @@ final class DaemonCommandHandlerStub implements DaemonCommandHandler {
         this.dataFileLength = length;
 
         this.dataFileContent = new byte[(int) length];
-        return is.read(this.dataFileContent) == length;
+        this.isDataFileComplete = is.read(this.dataFileContent) == length;
+
+        return this.isDataFileComplete;
     }
 
     @Override
     public void abortPrinterJob() throws IOException {
+        this.isAborted = true;
     }
 
     @Override
     public void endPrinterJob() throws IOException {
+        this.isEnded = true;
     }
 
     @Override

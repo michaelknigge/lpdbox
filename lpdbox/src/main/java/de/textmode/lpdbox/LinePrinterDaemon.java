@@ -23,6 +23,7 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 
@@ -178,6 +179,7 @@ public final class LinePrinterDaemon implements Runnable {
         for (int ix = 0; ix < timeoutInMillis; ix += 100) {
             if (!this.isRunning) {
                 this.logger.info("Line printer daemon stopped");
+                this.executorService.awaitTermination(timeoutInMillis, TimeUnit.MILLISECONDS);
                 return true;
             }
             Thread.sleep(100);

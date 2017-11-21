@@ -55,8 +55,47 @@ public final class LinePrinterDaemonTest extends TestCase {
         assertEquals(0, ack);
     }
 
+    private void readNegativeAcknowledgement(final InputStream is) throws IOException {
+        final int ack = is.read();
+        assertEquals(1, ack);
+    }
+
     /**
-     * "Replays" a real-world examlple.
+     * Returns a 383 bytes long control file. This file here has been captured in a real world
+     * from a z/OS system talking to a print server.
+     */
+    private String getControlFileContent() {
+        final StringBuilder ctrl = new StringBuilder();
+
+        ctrl.append("48535953420a");
+        ctrl.append("5056505345585439300a");
+        ctrl.append("6c646641393633535953420a");
+        ctrl.append("55646641393633535953420a");
+        ctrl.append("4e4a4f4249443d4a303030393932302c4c495354453d50413030354830312e5359535554320a");
+        ctrl.append("2d6f63633d6e6f0a");
+        ctrl.append("2d6f636f703d310a");
+        ctrl.append("2d6f64617461743d6c0a");
+        ctrl.append("2d6f6a6f626e3d42393936303330550a");
+        ctrl.append("2d6f6e6f3d504e50584a4553320a");
+        ctrl.append("2d6f70613d666f726d733d303031302c636c6173733d4b2c64657374696e6174696f6e3d4c4f43414c0a");
+        ctrl.append("2d6f70723d572e42455254484f4c442e3a323836390a");
+        ctrl.append("2d6f75733d423939363033300a");
+        ctrl.append("2d6f63686172733d475431300a");
+        ctrl.append("2d6f706167656465663d5031303031300a");
+        ctrl.append("2d6f74693d546573741c447275636b1c42657274686f6c641c50520a");
+        ctrl.append("2d6f7472633d6e6f0a");
+        ctrl.append("2d6f66696c65666f726d61743d7265636f72640a");
+        ctrl.append("2d6f663d4631535444310a");
+        ctrl.append("2d6f6e613d572e42455254484f4c442e3a323836390a");
+        ctrl.append(
+                "2d6f655f74693d45333835413241333430433439"
+                        + "394134383339323430433238353939413338383936393338343430443744390a");
+
+        return ctrl.toString();
+    }
+
+    /**
+     * "Replays" a real-world example.
      */
     public void testRealWorldExample() throws Exception {
         final DaemonCommandHandlerStubFactory stubFactory = new DaemonCommandHandlerStubFactory();
@@ -99,36 +138,9 @@ public final class LinePrinterDaemonTest extends TestCase {
             // LPD tells us "yeah, continue...."
             this.readPositiveAcknowledgement(is);
 
-            // Now write the control file. This file here has been captured in a real world
-            // from a z/OS system talking to a print server.
-            final StringBuilder ctrl = new StringBuilder();
-
-            ctrl.append("48535953420a");
-            ctrl.append("5056505345585439300a");
-            ctrl.append("6c646641393633535953420a");
-            ctrl.append("55646641393633535953420a");
-            ctrl.append("4e4a4f4249443d4a303030393932302c4c495354453d50413030354830312e5359535554320a");
-            ctrl.append("2d6f63633d6e6f0a");
-            ctrl.append("2d6f636f703d310a");
-            ctrl.append("2d6f64617461743d6c0a");
-            ctrl.append("2d6f6a6f626e3d42393936303330550a");
-            ctrl.append("2d6f6e6f3d504e50584a4553320a");
-            ctrl.append("2d6f70613d666f726d733d303031302c636c6173733d4b2c64657374696e6174696f6e3d4c4f43414c0a");
-            ctrl.append("2d6f70723d572e42455254484f4c442e3a323836390a");
-            ctrl.append("2d6f75733d423939363033300a");
-            ctrl.append("2d6f63686172733d475431300a");
-            ctrl.append("2d6f706167656465663d5031303031300a");
-            ctrl.append("2d6f74693d546573741c447275636b1c42657274686f6c641c50520a");
-            ctrl.append("2d6f7472633d6e6f0a");
-            ctrl.append("2d6f66696c65666f726d61743d7265636f72640a");
-            ctrl.append("2d6f663d4631535444310a");
-            ctrl.append("2d6f6e613d572e42455254484f4c442e3a323836390a");
-            ctrl.append(
-                    "2d6f655f74693d45333835413241333430433439"
-                            + "394134383339323430433238353939413338383936393338343430443744390a");
-
-            // Now write the control file and the 0x00 "finalizer".
-            writeTo(os, ctrl.toString() + "00");
+            // Now write the control file (plus 0x00 finalizer). This file here has been
+            // captured in a real world from a z/OS system talking to a print server.
+            writeTo(os, this.getControlFileContent() + "00");
 
             // LPD tells us "yeah, continue...."
             this.readPositiveAcknowledgement(is);
@@ -162,7 +174,7 @@ public final class LinePrinterDaemonTest extends TestCase {
             assertEquals("NW_BETA93_EINZELBLATT", handler.getPrinterQueueName());
 
             assertEquals("cfA963SYSB", handler.getControlFileName());
-            assertTrue(Arrays.equals(hexToByteArray(ctrl.toString()), handler.getControlFileContent()));
+            assertTrue(Arrays.equals(hexToByteArray(this.getControlFileContent()), handler.getControlFileContent()));
 
             final String[] entries = handler.getControlFileContentAsArray();
             assertEquals("HSYSB", entries[0]);
@@ -210,9 +222,10 @@ public final class LinePrinterDaemonTest extends TestCase {
                 .maxThreads(1)
                 .build();
 
+        // DO NOT INVOKE "daemon.startup()" here to check if it is invoked implicitly.
+
         final Thread thread = new Thread(daemon);
         thread.setDaemon(true);
-        daemon.startup();
         thread.start();
 
         // First we send an invalid control code - the server will close the connection...
@@ -249,4 +262,241 @@ public final class LinePrinterDaemonTest extends TestCase {
         daemon.stop(5000);
         assertEquals("lp", handler.getPrinterQueueName());
     }
+
+    /**
+     * Closes the connection in the middle of the transfer of the control file.
+     */
+    public void testCloseConnectionWhileTransferringControlFile() throws Exception {
+        final DaemonCommandHandlerStubFactory stubFactory = new DaemonCommandHandlerStubFactory();
+        final DaemonCommandHandlerStub handler = stubFactory.getStubHandler();
+
+        final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder(stubFactory)
+                .portNumber(PORT_NUMBER)
+                .build();
+
+        final Thread thread = new Thread(daemon);
+        thread.setDaemon(true);
+        thread.start();
+
+        final Socket s = new Socket("localhost", PORT_NUMBER);
+
+        try {
+            final InputStream is = s.getInputStream();
+            final OutputStream os = s.getOutputStream();
+
+            // Command    :  0x02  (Receive Print File)
+            // Queue Name : lp
+            writeTo(os, "026c700a");
+
+            // LPD tells us "yeah, continue...."
+            this.readPositiveAcknowledgement(is);
+
+            // Sub-Command : 0x02 (Receive control file)
+            // Length      : 0000000383
+            // Name        : cfA963SYSB
+            writeTo(os, "023030303030303033383320636641393633535953420a");
+
+            // LPD tells us "yeah, continue...."
+            this.readPositiveAcknowledgement(is);
+
+            // Now write the control file. Write just a few bytes, then close the connection.
+            // The server should handle this...
+            writeTo(os, "deadbeef");
+            os.flush();
+
+            s.close();
+
+            assertTrue(daemon.isRunning());
+            daemon.stop(5000);
+            assertFalse(daemon.isRunning());
+
+            assertFalse(handler.isAborted());
+            assertFalse(handler.isControlFileComplete());
+            assertTrue(handler.isEnded());
+        } finally {
+            if (!s.isClosed()) {
+                s.close();
+            }
+            daemon.stop(5000);
+        }
+    }
+
+    /**
+     * Closes the connection in the middle of the transfer of the data file.
+     */
+    public void testCloseConnectionWhileTransferringDataFile() throws Exception {
+        final DaemonCommandHandlerStubFactory stubFactory = new DaemonCommandHandlerStubFactory();
+        final DaemonCommandHandlerStub handler = stubFactory.getStubHandler();
+
+        final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder(stubFactory)
+                .portNumber(PORT_NUMBER)
+                .build();
+
+        final Thread thread = new Thread(daemon);
+        thread.setDaemon(true);
+        thread.start();
+
+        final Socket s = new Socket("localhost", PORT_NUMBER);
+
+        try {
+            final InputStream is = s.getInputStream();
+            final OutputStream os = s.getOutputStream();
+
+            // Command    :  0x02  (Receive Print File)
+            // Queue Name : lp
+            writeTo(os, "026c700a");
+
+            // LPD tells us "yeah, continue...."
+            this.readPositiveAcknowledgement(is);
+
+            assertTrue(daemon.isRunning());
+
+            // Sub-Command : 0x02 (Receive control file)
+            // Length      : 0000000383
+            // Name        : cfA963SYSB
+            writeTo(os, "023030303030303033383320636641393633535953420a");
+
+            // LPD tells us "yeah, continue...."
+            this.readPositiveAcknowledgement(is);
+
+            // Now write the control file (plus 0x00 finalizer). This file here has been
+            // captured in a real world from a z/OS system talking to a print server.
+            writeTo(os, this.getControlFileContent() + "00");
+
+            // LPD tells us "yeah, continue...."
+            this.readPositiveAcknowledgement(is);
+
+            // Sub-Command : 0x03 (Receive data file)
+            // Length      : 0000000060
+            // Name        : dfA963SYSB
+            writeTo(os, "033030303030303030363020646641393633535953420a");
+
+            // LPD tells us "yeah, continue...."
+            this.readPositiveAcknowledgement(is);
+
+            // Now write the control file. Write just a few bytes, then close the connection.
+            // The server should handle this...
+            writeTo(os, "deadbeef");
+            os.flush();
+
+            s.close();
+
+            assertTrue(daemon.isRunning());
+            daemon.stop(5000);
+            assertFalse(daemon.isRunning());
+
+            assertFalse(handler.isAborted());
+            assertTrue(handler.isControlFileComplete());
+            assertFalse(handler.isDataFileComplete());
+            assertTrue(handler.isEnded());
+        } finally {
+            if (!s.isClosed()) {
+                s.close();
+            }
+            daemon.stop(5000);
+        }
+    }
+
+    /**
+     * Closes the connection between the control file and the data file.
+     */
+    public void testCloseConnectionBetweenControlAndDataFile() throws Exception {
+        final DaemonCommandHandlerStubFactory stubFactory = new DaemonCommandHandlerStubFactory();
+        final DaemonCommandHandlerStub handler = stubFactory.getStubHandler();
+
+        final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder(stubFactory)
+                .portNumber(PORT_NUMBER)
+                .build();
+
+        final Thread thread = new Thread(daemon);
+        thread.setDaemon(true);
+        thread.start();
+
+        final Socket s = new Socket("localhost", PORT_NUMBER);
+
+        try {
+            final InputStream is = s.getInputStream();
+            final OutputStream os = s.getOutputStream();
+
+            // Command    :  0x02  (Receive Print File)
+            // Queue Name : lp
+            writeTo(os, "026c700a");
+
+            // LPD tells us "yeah, continue...."
+            this.readPositiveAcknowledgement(is);
+
+            assertTrue(daemon.isRunning());
+
+            // Sub-Command : 0x02 (Receive control file)
+            // Length      : 0000000383
+            // Name        : cfA963SYSB
+            writeTo(os, "023030303030303033383320636641393633535953420a");
+
+            // LPD tells us "yeah, continue...."
+            this.readPositiveAcknowledgement(is);
+
+            // Now write the control file (plus 0x00 finalizer). This file here has been
+            // captured in a real world from a z/OS system talking to a print server.
+            writeTo(os, this.getControlFileContent() + "00");
+
+            // LPD tells us "yeah, continue...."
+            this.readPositiveAcknowledgement(is);
+
+            s.close();
+
+            assertTrue(daemon.isRunning());
+            daemon.stop(5000);
+            assertFalse(daemon.isRunning());
+
+            assertFalse(handler.isAborted());
+            assertTrue(handler.isControlFileComplete());
+            assertFalse(handler.isDataFileComplete());
+            assertTrue(handler.isEnded());
+        } finally {
+            if (!s.isClosed()) {
+                s.close();
+            }
+            daemon.stop(5000);
+        }
+    }
+
+    /**
+     * Printing to a locked queue.
+     */
+    public void testPrintingToLockedQueue() throws Exception {
+        final DaemonCommandHandlerStubFactory stubFactory = new DaemonCommandHandlerStubFactory();
+        final DaemonCommandHandlerStub handler = stubFactory.getStubHandler();
+
+        final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder(stubFactory)
+                .portNumber(PORT_NUMBER)
+                .build();
+
+        final Thread thread = new Thread(daemon);
+        thread.setDaemon(true);
+        thread.start();
+
+        final Socket s = new Socket("localhost", PORT_NUMBER);
+
+        try {
+            handler.lockQueue();
+
+            final InputStream is = s.getInputStream();
+            final OutputStream os = s.getOutputStream();
+
+            // Command    :  0x02  (Receive Print File)
+            // Queue Name : lp
+            writeTo(os, "026c700a");
+
+            // LPD tells us "sorry, it's closed...."
+            this.readNegativeAcknowledgement(is);
+
+            assertTrue(daemon.isRunning());
+        } finally {
+            if (!s.isClosed()) {
+                s.close();
+            }
+            daemon.stop(5000);
+        }
+    }
+
 }

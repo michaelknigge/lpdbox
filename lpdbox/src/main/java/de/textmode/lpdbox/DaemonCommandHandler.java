@@ -53,9 +53,8 @@ public interface DaemonCommandHandler {
     boolean receiveDataFile(final InputStream is, final long fileLength, final String fileName) throws IOException;
 
     /**
-     * Handles the subcommand "Abort job" of the daemon command "Receive printer job". Is also invoked
-     * if the client closes the connection to the LPD-Server and either the control file or the
-     * data file has not been received.
+     * Handles the subcommand "Abort job" of the daemon command "Receive printer job". The handler should delete
+     * all files which have been created during this "Receive printer job" command.
      */
     void abortPrinterJob() throws IOException;
 

@@ -65,7 +65,6 @@ final class ReceivePrinterJobCommandParser {
         if (handler.startPrinterJob(queueName)) {
             sendPositiveAcknowledgement(os);
         } else {
-            // TODO X: Write an unit test!
             // TODO X: Test in real world! sendNegativeAcknowledgement() or close the socket?
             sendNegativeAcknowledgement(os);
             return;
