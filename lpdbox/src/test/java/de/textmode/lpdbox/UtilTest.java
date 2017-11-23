@@ -17,6 +17,7 @@ package de.textmode.lpdbox;
  */
 
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
@@ -85,5 +86,17 @@ public final class UtilTest extends TestCase {
      */
     public void testTruncatedStream() throws Exception {
         performUnsuccessfulReadLineTest("foo");
+    }
+
+    /**
+     * Check that closeQuietly() throws no Throwable.
+     */
+    public void testCloseQuietly() throws Exception {
+        Util.closeQuietly(new Closeable() {
+            @Override
+            public void close() throws IOException {
+                throw new IOException("This exception should cause.... no trouble!");
+            }
+        });
     }
 }
