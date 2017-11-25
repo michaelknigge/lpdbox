@@ -27,7 +27,7 @@ dependencies {
 
 In your Java code you need to create a `DaemonCommandHandlerFactory` that is able to create `DaemonCommandHandler` objects.
 
-Then use the `LinePrinterDaemonBuilder` to build a `LinePrinterDaemon`. Invoke `startup` on the built `LinePrinterDaemon` and
+Then use the `LinePrinterDaemonBuilder` to build a `LinePrinterDaemon`. Invoke `run` on the built `LinePrinterDaemon` and
 you are done. To stop the `LinePrinterDaemon` just invoke `stop` or `stop(final long timeoutInMillis)`. That's all
 
 The `LinePrinterDaemon` implements the `Runnable` interface so you can easily start the daemon in a thread. Then you do not
@@ -41,4 +41,4 @@ If you want to contribute to lpdbox, you're welcome. But please make sure that y
 
 It is easy to check this - just build the source with `gradle` before creating a pull request. The gradle default tasks will run [checkstyle](http://checkstyle.sourceforge.net/), [findbugs](http://findbugs.sourceforge.net/) and build the JavaDoc. If everything goes well, you're welcome to create a pull request.
 
-Hint: If you use [Eclipse](https://eclipse.org/) as your IDE, you can simply run `gradle eclipse` to create the Eclipse project files. Furthermore you can import Eclipse formatter settings (see file `config/eclipse-formatter.xml`) as well as Eclipse preferences (see file `config/eclipse-preferences.epf`) that will assist you in formatting the lpdbox source code according the used coding conventions (no tabs, UTF-8 encoding, indent by 4 spaces, no line longer than 120 characters, etc.).
+Hint: If you use [Eclipse](https://eclipse.org/) as your IDE, you can simply run `gradle eclipse` to create the Eclipse project files. Furthermore you can import Eclipse formatter settings (see file `config/eclipse-formatter.xml`) that will assist you in formatting the lpdbox source code according the used coding conventions (no tabs, UTF-8 encoding, indent by 4 spaces, no line longer than 120 characters, etc.).
