@@ -529,6 +529,7 @@ public final class LinePrinterDaemonTest extends TestCase {
         } catch (final SocketException e) {
             // This ok, too.... On my windows box the is.read() above
             // returns -1... Linux throws an SocketException...
+            return;
         } finally {
             s.close();
             assertTrue(daemon.isRunning());
@@ -571,6 +572,7 @@ public final class LinePrinterDaemonTest extends TestCase {
         } catch (final SocketException e) {
             // This ok, too.... On my windows box the is.read() above
             // returns -1... Linux throws an SocketException...
+            return;
         } finally {
             s.close();
             assertTrue(daemon.isRunning());
