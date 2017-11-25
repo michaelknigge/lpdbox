@@ -121,7 +121,7 @@ public final class LinePrinterDaemonTest extends TestCase {
             final InputStream is = s.getInputStream();
             final OutputStream os = s.getOutputStream();
 
-            // Command    :  0x02  (Receive Print File)
+            // Command    : 0x02  (Receive Print File)
             // Queue Name : NW_BETA93_EINZELBLATT
             writeTo(os, "024e575f4245544139335f45494e5a454c424c4154540a");
 
@@ -284,7 +284,7 @@ public final class LinePrinterDaemonTest extends TestCase {
             final InputStream is = s.getInputStream();
             final OutputStream os = s.getOutputStream();
 
-            // Command    :  0x02  (Receive Print File)
+            // Command    : 0x02  (Receive Print File)
             // Queue Name : lp
             writeTo(os, "026c700a");
 
@@ -341,7 +341,7 @@ public final class LinePrinterDaemonTest extends TestCase {
             final InputStream is = s.getInputStream();
             final OutputStream os = s.getOutputStream();
 
-            // Command    :  0x02  (Receive Print File)
+            // Command    : 0x02  (Receive Print File)
             // Queue Name : lp
             writeTo(os, "026c700a");
 
@@ -416,7 +416,7 @@ public final class LinePrinterDaemonTest extends TestCase {
             final InputStream is = s.getInputStream();
             final OutputStream os = s.getOutputStream();
 
-            // Command    :  0x02  (Receive Print File)
+            // Command    : 0x02  (Receive Print File)
             // Queue Name : lp
             writeTo(os, "026c700a");
 
@@ -480,7 +480,7 @@ public final class LinePrinterDaemonTest extends TestCase {
             final InputStream is = s.getInputStream();
             final OutputStream os = s.getOutputStream();
 
-            // Command    :  0x02  (Receive Print File)
+            // Command    : 0x02  (Receive Print File)
             // Queue Name : lp
             writeTo(os, "026c700a");
 
@@ -520,18 +520,18 @@ public final class LinePrinterDaemonTest extends TestCase {
             final InputStream is = s.getInputStream();
             final OutputStream os = s.getOutputStream();
 
-            // Command    :  0x01  (Print jobs)
+            // Command    : 0x01  (Print jobs)
             // Queue Name : lp
             writeTo(os, "016c700a");
             os.flush();
 
-            assertTrue(daemon.isRunning());
             assertEquals(-1, is.read());
         } catch (final SocketException e) {
             // This ok, too.... On my windows box the is.read() above
             // returns -1... Linux throws an SocketException...
         } finally {
             s.close();
+            assertTrue(daemon.isRunning());
             daemon.stop(5000);
         }
     }
@@ -562,18 +562,18 @@ public final class LinePrinterDaemonTest extends TestCase {
             final InputStream is = s.getInputStream();
             final OutputStream os = s.getOutputStream();
 
-            // Command    :  0x01  (Print jobs)
+            // Command    : 0x01  (Print jobs)
             // Queue Name : lp
             writeTo(os, "016c700a");
             os.flush();
 
-            assertTrue(daemon.isRunning());
             assertEquals(-1, is.read());
         } catch (final SocketException e) {
             // This ok, too.... On my windows box the is.read() above
             // returns -1... Linux throws an SocketException...
         } finally {
             s.close();
+            assertTrue(daemon.isRunning());
             daemon.stop(5000);
         }
     }
@@ -582,7 +582,7 @@ public final class LinePrinterDaemonTest extends TestCase {
      * Send the Report Queue State Short to the server.
      */
     public void testReportQueueStateShort() throws Exception {
-        // Command    :  0x03  (ReportQueueStateShort)
+        // Command    : 0x03  (ReportQueueStateShort)
         // Queue Name : lp
         this.testReportQueueState("036c700a", "this is a short list");
     }
@@ -591,7 +591,7 @@ public final class LinePrinterDaemonTest extends TestCase {
      * Send the Report Queue State Long to the server.
      */
     public void testReportQueueStateLong() throws Exception {
-        // Command    :  0x04  (ReportQueueStateShort)
+        // Command    : 0x04  (ReportQueueStateShort)
         // Queue Name : lp
         this.testReportQueueState("046c700a", "this is a long list");
     }
@@ -657,7 +657,7 @@ public final class LinePrinterDaemonTest extends TestCase {
             final InputStream is = s.getInputStream();
             final OutputStream os = s.getOutputStream();
 
-            // Command    :  0x05  (Remove Print Job)
+            // Command    : 0x05  (Remove Print Job)
             // Queue Name : lp
             // Agent      : ABC
             writeTo(os, "056c70204142430a");
