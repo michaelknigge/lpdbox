@@ -45,7 +45,7 @@ public final class PrintJobsCommandParserTest extends TestCase {
         final ByteArrayInputStream is = new ByteArrayInputStream(data.toByteArray());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
-        PrintJobsCommandParser.parse(LOGGER, handler, is, os);
+        new PrintJobsCommandParser(LOGGER, handler).parse(is, os);
 
         assertEquals("MY_QUEUE_NAME", handler.getPrinterQueueName());
         assertEquals(0, os.size());
@@ -65,7 +65,7 @@ public final class PrintJobsCommandParserTest extends TestCase {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
         try {
-            PrintJobsCommandParser.parse(LOGGER, handler, is, os);
+            new PrintJobsCommandParser(LOGGER, handler).parse(is, os);
             fail();
         } catch (final IOException e) {
             assertEquals("No queue name was provided by the client", e.getMessage());
@@ -86,7 +86,7 @@ public final class PrintJobsCommandParserTest extends TestCase {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
         try {
-            PrintJobsCommandParser.parse(LOGGER, handler, is, os);
+            new PrintJobsCommandParser(LOGGER, handler).parse(is, os);
             fail();
         } catch (final IOException e) {
             assertEquals(Util.ERROR_END_OF_STREAM, e.getMessage());

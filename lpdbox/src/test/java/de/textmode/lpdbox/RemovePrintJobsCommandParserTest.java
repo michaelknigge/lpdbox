@@ -46,7 +46,7 @@ public final class RemovePrintJobsCommandParserTest extends TestCase {
         final ByteArrayInputStream is = new ByteArrayInputStream(data.toByteArray());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
-        RemovePrintJobsCommandParser.parse(LOGGER, handler, is, os);
+        new RemovePrintJobsCommandParser(LOGGER, handler).parse(is, os);
 
         assertEquals(0, os.size());
 

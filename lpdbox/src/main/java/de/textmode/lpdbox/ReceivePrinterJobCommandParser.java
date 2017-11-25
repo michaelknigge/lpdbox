@@ -26,7 +26,7 @@ import org.slf4j.Logger;
  * The {@link ReceivePrinterJobCommandParser} parses the daemon command "Receive printer job"
  * and sends the response back to the client.
  */
-final class ReceivePrinterJobCommandParser {
+final class ReceivePrinterJobCommandParser extends CommandParser {
 
     /**
      * Sub-Command Code "Abort Job".
@@ -44,25 +44,23 @@ final class ReceivePrinterJobCommandParser {
     static final int COMMAND_CODE_RECEIVE_DATA_FILE = 0x03;
 
 
-    private ReceivePrinterJobCommandParser() {
+    /**
+     * Constructor.
+     */
+    ReceivePrinterJobCommandParser(final Logger logger, final DaemonCommandHandler handler) {
+        super(logger, handler);
     }
 
     /**
      * Parses the daemon command "Receive printer job" and delegates the work to
      * the {@link DaemonCommandHandler}.
      */
-    static void parse(
-            final Logger logger,
-            final DaemonCommandHandler handler,
-            final InputStream is,
-            final OutputStream os) throws IOException {
+    @Override
+    void parse(final InputStream is, final OutputStream os) throws IOException {
 
-        final String queueName = Util.readLine(is);
-        if (queueName.isEmpty()) {
-            throw new IOException("No queue name was provided by the client");
-        }
+        final String queueName = this.getQueueName(is);
 
-        if (handler.startPrinterJob(queueName)) {
+        if (this.getDaemonCommandHandler().startPrinterJob(queueName)) {
             sendPositiveAcknowledgement(os);
         } else {
             // TODO X: Test in real world! sendNegativeAcknowledgement() or close the socket?
@@ -74,7 +72,7 @@ final class ReceivePrinterJobCommandParser {
         while (true) {
             final int commandCode = is.read();
             if (commandCode == -1) {
-                handler.endPrinterJob();
+                this.getDaemonCommandHandler().endPrinterJob();
                 return;
             }
 
@@ -86,7 +84,7 @@ final class ReceivePrinterJobCommandParser {
 
             if (commandCode == COMMAND_CODE_ABORT_JOB) {
                 // TODO X: Write an unit test!
-                handler.abortPrinterJob();
+                this.getDaemonCommandHandler().abortPrinterJob();
             } else {
                 final String parameterString = Util.readLine(is);
                 final String[] parameters = parameterString.split("\\s+");
@@ -101,8 +99,8 @@ final class ReceivePrinterJobCommandParser {
                 sendPositiveAcknowledgement(os);
 
                 final boolean result = commandCode == COMMAND_CODE_RECEIVE_CONTROL_FILE
-                    ? handler.receiveControlFile(is, (int) fileLength, fileName)
-                    : handler.receiveDataFile(is, fileLength, fileName);
+                    ? this.getDaemonCommandHandler().receiveControlFile(is, (int) fileLength, fileName)
+                    : this.getDaemonCommandHandler().receiveDataFile(is, fileLength, fileName);
 
                 // After the file has been sent completely, the client sends an 0x00 as an indication that
                 // the file being sent is complete.... We read that here...

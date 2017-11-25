@@ -44,7 +44,7 @@ public final class ReportQueueStateShortCommandParserTest extends TestCase {
         final ByteArrayInputStream is = new ByteArrayInputStream(data.toByteArray());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
-        ReportQueueStateShortCommandParser.parse(LOGGER, handler, is, os);
+        new ReportQueueStateShortCommandParser(LOGGER, handler).parse(is, os);
 
         assertEquals("this is a short list", os.toString("ISO-8859-1"));
 

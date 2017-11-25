@@ -44,7 +44,7 @@ public final class ReportQueueStateLongCommandParserTest extends TestCase {
         final ByteArrayInputStream is = new ByteArrayInputStream(data.toByteArray());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
-        ReportQueueStateLongCommandParser.parse(LOGGER, handler, is, os);
+        new ReportQueueStateLongCommandParser(LOGGER, handler).parse(is, os);
 
         assertEquals("this is a long list", os.toString("ISO-8859-1"));
 

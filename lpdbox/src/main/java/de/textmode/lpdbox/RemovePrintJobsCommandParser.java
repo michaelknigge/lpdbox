@@ -27,20 +27,20 @@ import org.slf4j.Logger;
  * The {@link RemovePrintJobsCommandParser} parses the daemon command "Remove print jobs"
  * and sends the response back to the client.
  */
-final class RemovePrintJobsCommandParser {
+final class RemovePrintJobsCommandParser extends CommandParser {
 
-    private RemovePrintJobsCommandParser() {
+    /**
+     * Constructor.
+     */
+    RemovePrintJobsCommandParser(final Logger logger, final DaemonCommandHandler handler) {
+        super(logger, handler);
     }
 
     /**
      * Parses the daemon command "Remove print jobs" and delegates the work to
      * the {@link DaemonCommandHandler}.
      */
-    static void parse(
-            final Logger logger,
-            final DaemonCommandHandler handler,
-            final InputStream is,
-            final OutputStream os) throws IOException {
+    void parse(final InputStream is, final OutputStream os) throws IOException {
 
         final String parameterString = Util.readLine(is);
         final String[] parameters = parameterString.split("\\s+");
@@ -54,6 +54,6 @@ final class RemovePrintJobsCommandParser {
             jobs.add(parameters[ix]);
         }
 
-        handler.removeJobs(parameters[0], parameters[1], jobs);
+        this.getDaemonCommandHandler().removeJobs(parameters[0], parameters[1], jobs);
     }
 }

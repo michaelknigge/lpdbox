@@ -94,23 +94,23 @@ final class LinePrinterDaemonConnectionHandler implements Runnable {
 
         switch (commandCode) {
         case COMMAND_CODE_PRINT_JOBS:
-            PrintJobsCommandParser.parse(this.logger, handler, is, os);
+            new PrintJobsCommandParser(this.logger, handler).parse(is, os);
             break;
 
         case COMMAND_CODE_RECEIVE_PRINTER_JOB:
-            ReceivePrinterJobCommandParser.parse(this.logger, handler, is, os);
+            new ReceivePrinterJobCommandParser(this.logger, handler).parse(is, os);
             break;
 
         case COMMAND_CODE_REPORT_QUEUE_STATE_SHORT:
-            ReportQueueStateShortCommandParser.parse(this.logger, handler, is, os);
+            new ReportQueueStateShortCommandParser(this.logger, handler).parse(is, os);
             break;
 
         case COMMAND_CODE_REPORT_QUEUE_STATE_LONG:
-            ReportQueueStateLongCommandParser.parse(this.logger, handler, is, os);
+            new ReportQueueStateLongCommandParser(this.logger, handler).parse(is, os);
             break;
 
         case COMMAND_CODE_REMOVE_PRINT_JOBS:
-            RemovePrintJobsCommandParser.parse(this.logger, handler, is, os);
+            new RemovePrintJobsCommandParser(this.logger, handler).parse(is, os);
             break;
 
         default:

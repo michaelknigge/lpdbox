@@ -57,7 +57,7 @@ public final class ReceivePrinterJobCommandParserTest extends TestCase {
         final ByteArrayInputStream is = new ByteArrayInputStream(data.toByteArray());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
-        ReceivePrinterJobCommandParser.parse(LOGGER, handler, is, os);
+        new ReceivePrinterJobCommandParser(LOGGER, handler).parse(is, os);
 
         final byte[] acks = os.toByteArray();
         assertEquals(ackCount, acks.length);
@@ -80,7 +80,7 @@ public final class ReceivePrinterJobCommandParserTest extends TestCase {
         final ByteArrayInputStream is = new ByteArrayInputStream(data);
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
-        ReceivePrinterJobCommandParser.parse(LOGGER, handler, is, os);
+        new ReceivePrinterJobCommandParser(LOGGER, handler).parse(is, os);
 
         final byte[] acks = os.toByteArray();
         assertEquals(ackCount, acks.length);

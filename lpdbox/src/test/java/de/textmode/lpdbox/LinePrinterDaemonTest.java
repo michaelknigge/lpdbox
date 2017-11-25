@@ -493,4 +493,178 @@ public final class LinePrinterDaemonTest extends TestCase {
             daemon.stop(5000);
         }
     }
+
+    /**
+     * Check if the Server handles {@link DaemonCommandHandler} == null correctly.
+     */
+    public void testDaemonCommandHandlerIsNull() throws Exception {
+        final DaemonCommandHandlerFactory factory = new DaemonCommandHandlerFactory() {
+            @Override
+            public DaemonCommandHandler create() {
+                return null;
+            }
+        };
+
+        final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder(factory)
+                .portNumber(PORT_NUMBER)
+                .build();
+
+        final Thread thread = new Thread(daemon);
+        thread.setDaemon(true);
+        daemon.startup();
+        thread.start();
+
+        final Socket s = new Socket("localhost", PORT_NUMBER);
+
+        try {
+            final InputStream is = s.getInputStream();
+            final OutputStream os = s.getOutputStream();
+
+            // Command    :  0x01  (Print jobs)
+            // Queue Name : lp
+            writeTo(os, "016c700a");
+            os.flush();
+
+            assertEquals(-1, is.read());
+            assertTrue(daemon.isRunning());
+        } finally {
+            s.close();
+            daemon.stop(5000);
+        }
+    }
+
+    /**
+     * Check if the Server handles if {@link DaemonCommandHandler} throws an error.
+     */
+    public void testDaemonCommandHandlerThrowsAnError() throws Exception {
+        final DaemonCommandHandlerFactory factory = new DaemonCommandHandlerFactory() {
+            @Override
+            public DaemonCommandHandler create() {
+                throw new Error("foo");
+            }
+        };
+
+        final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder(factory)
+                .portNumber(PORT_NUMBER)
+                .build();
+
+        final Thread thread = new Thread(daemon);
+        thread.setDaemon(true);
+        daemon.startup();
+        thread.start();
+
+        final Socket s = new Socket("localhost", PORT_NUMBER);
+
+        try {
+            final InputStream is = s.getInputStream();
+            final OutputStream os = s.getOutputStream();
+
+            // Command    :  0x01  (Print jobs)
+            // Queue Name : lp
+            writeTo(os, "016c700a");
+            os.flush();
+
+            assertEquals(-1, is.read());
+            assertTrue(daemon.isRunning());
+        } finally {
+            s.close();
+            daemon.stop(5000);
+        }
+    }
+
+    /**
+     * Send the Report Queue State Short to the server.
+     */
+    public void testReportQueueStateShort() throws Exception {
+        // Command    :  0x03  (ReportQueueStateShort)
+        // Queue Name : lp
+        this.testReportQueueState("036c700a", "this is a short list");
+    }
+
+    /**
+     * Send the Report Queue State Long to the server.
+     */
+    public void testReportQueueStateLong() throws Exception {
+        // Command    :  0x04  (ReportQueueStateShort)
+        // Queue Name : lp
+        this.testReportQueueState("046c700a", "this is a long list");
+    }
+
+    /**
+     * Send the Report Queue State Long/Short to the server.
+     */
+    private void testReportQueueState(final String hexString, final String expected) throws Exception {
+        final DaemonCommandHandlerStubFactory stubFactory = new DaemonCommandHandlerStubFactory();
+        final DaemonCommandHandlerStub handler = stubFactory.getStubHandler();
+
+        final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder(stubFactory)
+                .portNumber(PORT_NUMBER)
+                .build();
+
+        final Thread thread = new Thread(daemon);
+        thread.setDaemon(true);
+        daemon.startup();
+        thread.start();
+
+        final Socket s = new Socket("localhost", PORT_NUMBER);
+
+        try {
+            handler.lockQueue();
+
+            final InputStream is = s.getInputStream();
+            final OutputStream os = s.getOutputStream();
+
+            writeTo(os, hexString);
+
+            final byte[] buffer = new byte[256];
+            final int len = is.read(buffer);
+
+            assertTrue(new String(buffer, Util.ISO_8859_1).substring(0, len).equals(expected));
+
+        } finally {
+            s.close();
+            daemon.stop(5000);
+        }
+    }
+
+    /**
+     * Remove a print job.
+     */
+    public void testRemovePrintJob() throws Exception {
+        final DaemonCommandHandlerStubFactory stubFactory = new DaemonCommandHandlerStubFactory();
+        final DaemonCommandHandlerStub handler = stubFactory.getStubHandler();
+
+        final LinePrinterDaemon daemon = new LinePrinterDaemonBuilder(stubFactory)
+                .portNumber(PORT_NUMBER)
+                .build();
+
+        final Thread thread = new Thread(daemon);
+        thread.setDaemon(true);
+        daemon.startup();
+        thread.start();
+
+        final Socket s = new Socket("localhost", PORT_NUMBER);
+
+        try {
+            handler.lockQueue();
+
+            final InputStream is = s.getInputStream();
+            final OutputStream os = s.getOutputStream();
+
+            // Command    :  0x05  (Remove Print Job)
+            // Queue Name : lp
+            // Agent      : ABC
+            writeTo(os, "056c70204142430a");
+
+            os.flush();
+
+            assertEquals(-1, is.read());
+            assertTrue(daemon.isRunning());
+            assertEquals("ABC", handler.getUserName());
+            assertEquals("lp", handler.getPrinterQueueName());
+        } finally {
+            s.close();
+            daemon.stop(5000);
+        }
+    }
 }

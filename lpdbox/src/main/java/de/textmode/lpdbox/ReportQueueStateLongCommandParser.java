@@ -27,20 +27,20 @@ import org.slf4j.Logger;
  * The {@link ReportQueueStateLongCommandParser} parses the daemon command "Send queue state (long)"
  * and sends the response back to the client.
  */
-final class ReportQueueStateLongCommandParser {
+final class ReportQueueStateLongCommandParser extends CommandParser {
 
-    private ReportQueueStateLongCommandParser() {
+    /**
+     * Constructor.
+     */
+    ReportQueueStateLongCommandParser(final Logger logger, final DaemonCommandHandler handler) {
+        super(logger, handler);
     }
 
     /**
      * Parses the daemon command "Send queue state (long)" and delegates the work to
      * the {@link DaemonCommandHandler}.
      */
-    static void parse(
-            final Logger logger,
-            final DaemonCommandHandler handler,
-            final InputStream is,
-            final OutputStream os) throws IOException {
+    void parse(final InputStream is, final OutputStream os) throws IOException {
 
         final String parameterString = Util.readLine(is);
         if (parameterString.isEmpty()) {
@@ -53,7 +53,7 @@ final class ReportQueueStateLongCommandParser {
             jobs.add(parameters[ix]);
         }
 
-        Util.writeString(handler.sendQueueStateLong(parameters[0], jobs), os);
+        Util.writeString(this.getDaemonCommandHandler().sendQueueStateLong(parameters[0], jobs), os);
     }
 
 }
