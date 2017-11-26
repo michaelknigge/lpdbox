@@ -22,7 +22,7 @@ subprojects {
   apply plugin: 'com.jfrog.bintray'
   apply plugin: 'net.researchgate.release'
 
-  version = "0.8"
+  version = "0.9"
 
   check.dependsOn jacocoTestReport
 
@@ -45,9 +45,8 @@ subprojects {
   }
 
   dependencies {
-    compile 'com.google.code.findbugs:annotations:3.0.1'
     compile 'org.slf4j:slf4j-api:1.7.25'
-    compile 'org.slf4j:slf4j-simple:1.7.25'
+    testCompile 'org.slf4j:slf4j-simple:1.7.25'
     testCompile 'junit:junit:4.12'
   }
 
@@ -64,6 +63,17 @@ subprojects {
 
   release {
     failOnUnversionedFiles = false
+  }
+
+  jar {
+    manifest {
+      attributes("Specification-Title": "LPD-Server framework",
+                 "Implementation-Title": "lpdbox",
+                 "Implementation-Version": version,
+                 "Implementation-Vendor": "https://github.com/michaelknigge/lpdbox",
+                 "Created-By": System.getProperty('java.version') + ' (' + System.getProperty('java.vendor') + ')',
+                 "Class-Path": configurations.compile.collect { it.getName() }.join(' '))
+    }
   }
 
   bintray {
