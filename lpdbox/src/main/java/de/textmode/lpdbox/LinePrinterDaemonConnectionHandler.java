@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 
 /**
  * The {@link LinePrinterDaemonConnectionHandler} handles the connection from a client.
- * It implements the {@link Runnable}-Interface so it can be ran within a thread.
+ * It implements the {@link Runnable}-Interface so it can be run within a thread.
  */
 final class LinePrinterDaemonConnectionHandler implements Runnable {
 

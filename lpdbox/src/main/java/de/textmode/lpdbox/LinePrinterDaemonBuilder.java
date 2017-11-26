@@ -20,8 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Builder for a {@link LinePrinterDaemon}. Every Command-Handler that is not set
- * is internally set to a non-op Command-Handler.
+ * Builder for a {@link LinePrinterDaemon}.
  */
 public final class LinePrinterDaemonBuilder {
 

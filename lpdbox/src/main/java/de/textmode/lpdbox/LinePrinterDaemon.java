@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 
 /**
  * The {@link LinePrinterDaemon} implements a RFC1179 compliant line printer daemon.
- * It implements the {@link Runnable} so it can be run without a wrapper class as
+ * It implements {@link Runnable} so it can be run without a wrapper class
  * within a thread.
  */
 public final class LinePrinterDaemon implements Runnable {
