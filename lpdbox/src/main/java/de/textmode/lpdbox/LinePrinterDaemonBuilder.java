@@ -49,7 +49,7 @@ public final class LinePrinterDaemonBuilder {
     /**
      * Sets the {@link PrintJobsCommandHandler}.
      */
-    LinePrinterDaemonBuilder logger(final Logger value) {
+    public LinePrinterDaemonBuilder logger(final Logger value) {
         this.logger = value;
         return this;
     }
@@ -57,7 +57,7 @@ public final class LinePrinterDaemonBuilder {
     /**
      * Sets the port number on which the {@link LinePrinterDaemon} should listen.
      */
-    LinePrinterDaemonBuilder portNumber(final int value) {
+    public LinePrinterDaemonBuilder portNumber(final int value) {
         this.portNumber = value;
         return this;
     }
@@ -65,7 +65,7 @@ public final class LinePrinterDaemonBuilder {
     /**
      * Sets the maximum number of threads the {@link LinePrinterDaemon} should start.
      */
-    LinePrinterDaemonBuilder maxThreads(final int value) {
+    public LinePrinterDaemonBuilder maxThreads(final int value) {
         this.maxThreads = value;
         return this;
     }
@@ -73,7 +73,7 @@ public final class LinePrinterDaemonBuilder {
     /**
      * Builds the {@link LinePrinterDaemon}.
      */
-    LinePrinterDaemon build() {
+    public LinePrinterDaemon build() {
         return new LinePrinterDaemon(this.portNumber, this.maxThreads, this.factory, this.logger);
     }
 }
