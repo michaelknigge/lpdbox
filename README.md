@@ -30,11 +30,10 @@ In your Java code you need to create a `DaemonCommandHandlerFactory` that is abl
 Then use the `LinePrinterDaemonBuilder` to build a `LinePrinterDaemon`. Invoke `run` on the built `LinePrinterDaemon` and
 you are done. To stop the `LinePrinterDaemon` just invoke `stop` or `stop(final long timeoutInMillis)`. That's all
 
-The `LinePrinterDaemon` implements the `Runnable` interface so you can easily start the daemon in a thread. Then you do not
-have to invoke `startup` - it is done automatically.
+The `LinePrinterDaemon` implements the `Runnable` interface so you can easily start the daemon within a thread.
 
 Note that the `LinePrinterDaemon` is multi-threaded. Each client connection is handled by a thread. You can limit the
-maximum number of threads using the method `LinePrinterDaemonBuilder.maxThreads`.
+maximum number of threads using the method `LinePrinterDaemonBuilder.maxThreads(final int maxThreads)`.
 
 # Contribute
 If you want to contribute to lpdbox, you're welcome. But please make sure that your changes keep the quality of lpdbox at least at it's current level. So please make sure that your contributions comply with the lpdbox coding conventions (formatting etc.) and that your contributions are validated by JUnit tests.
