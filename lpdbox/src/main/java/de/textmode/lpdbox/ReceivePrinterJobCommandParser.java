@@ -61,17 +61,17 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
         final String queueName = this.getQueueName(is);
 
         if (this.getDaemonCommandHandler().startPrinterJob(queueName)) {
-            sendPositiveAcknowledgement(os);
+            this.sendPositiveAcknowledgement(os);
         } else {
             // TODO X: Test in real world! sendNegativeAcknowledgement() or close the socket?
-            sendNegativeAcknowledgement(os);
+            this.sendNegativeAcknowledgement(os);
             return;
         }
 
-        // TODO X: Check what happens if the connection closes.... SocketException? invoke handler.Abort?!?
         while (true) {
             final int commandCode = is.read();
             if (commandCode == -1) {
+                this.getLogger().debug("End job (print job is complete)");
                 this.getDaemonCommandHandler().endPrinterJob();
                 return;
             }
@@ -83,9 +83,15 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
             }
 
             if (commandCode == COMMAND_CODE_ABORT_JOB) {
-                // TODO X: Write an unit test!
+                this.getLogger().debug("Abort job");
                 this.getDaemonCommandHandler().abortPrinterJob();
             } else {
+                if (commandCode == COMMAND_CODE_RECEIVE_CONTROL_FILE) {
+                    this.getLogger().debug("Receive control file");
+                } else {
+                    this.getLogger().debug("Receive data file");
+                }
+
                 final String parameterString = Util.readLine(is);
                 final String[] parameters = parameterString.split("\\s+");
 
@@ -94,9 +100,17 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
                 }
 
                 final long fileLength = Long.parseLong(parameters[0]);
+                if (commandCode == COMMAND_CODE_RECEIVE_CONTROL_FILE && fileLength <= 0) {
+                    throw new IOException("Client specified a zero length control file which is not allowed");
+                }
+
+                if (commandCode == COMMAND_CODE_RECEIVE_DATA_FILE && fileLength < 0) {
+                    throw new IOException("Client specified an invalid (negative) data file length");
+                }
+
                 final String fileName = parameters[1];
 
-                sendPositiveAcknowledgement(os);
+                this.sendPositiveAcknowledgement(os);
 
                 final boolean result = commandCode == COMMAND_CODE_RECEIVE_CONTROL_FILE
                     ? this.getDaemonCommandHandler().receiveControlFile(is, (int) fileLength, fileName)
@@ -108,11 +122,10 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
                 final boolean fileComplete = is.read() == 0x00;
 
                 if (result && fileComplete) {
-                    sendPositiveAcknowledgement(os);
+                    this.sendPositiveAcknowledgement(os);
                 } else {
-                    // TODO X: Write an unit test!
                     // TODO X: Test in real world! sendNegativeAcknowledgement() or close the socket?
-                    sendNegativeAcknowledgement(os);
+                    this.sendNegativeAcknowledgement(os);
                 }
             }
         }
@@ -121,14 +134,16 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
     /**
      * Sends a positive acknowledgement to the client.
      */
-    private static void sendPositiveAcknowledgement(final OutputStream os) throws IOException {
+    private void sendPositiveAcknowledgement(final OutputStream os) throws IOException {
+        this.getLogger().debug("Send positive acknowledgement to the client.");
         os.write((char) 0x00);
     }
 
     /**
      * Sends a negative acknowledgement to the client.
      */
-    private static void sendNegativeAcknowledgement(final OutputStream os) throws IOException {
+    private void sendNegativeAcknowledgement(final OutputStream os) throws IOException {
+        this.getLogger().debug("Send negative acknowledgement to the client.");
         os.write((char) 0x01);
     }
 }

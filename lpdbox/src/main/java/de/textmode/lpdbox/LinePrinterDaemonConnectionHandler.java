@@ -94,22 +94,27 @@ final class LinePrinterDaemonConnectionHandler implements Runnable {
 
         switch (commandCode) {
         case COMMAND_CODE_PRINT_JOBS:
+            this.logger.debug("Received command \"print jobs\" from " + client);
             new PrintJobsCommandParser(this.logger, handler).parse(is, os);
             break;
 
         case COMMAND_CODE_RECEIVE_PRINTER_JOB:
+            this.logger.debug("Received command \"receive printer job\" from " + client);
             new ReceivePrinterJobCommandParser(this.logger, handler).parse(is, os);
             break;
 
         case COMMAND_CODE_REPORT_QUEUE_STATE_SHORT:
+            this.logger.debug("Received command \"report queue state (short)\" from " + client);
             new ReportQueueStateShortCommandParser(this.logger, handler).parse(is, os);
             break;
 
         case COMMAND_CODE_REPORT_QUEUE_STATE_LONG:
+            this.logger.debug("Received command \"report queue state (long)\" from " + client);
             new ReportQueueStateLongCommandParser(this.logger, handler).parse(is, os);
             break;
 
         case COMMAND_CODE_REMOVE_PRINT_JOBS:
+            this.logger.debug("Received command \"remove print jobs\" from " + client);
             new RemovePrintJobsCommandParser(this.logger, handler).parse(is, os);
             break;
 

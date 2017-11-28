@@ -39,6 +39,7 @@ final class PrintJobsCommandParser extends CommandParser {
      * Parses the daemon command "Print any waiting jobs" and delegates the work to
      * the {@link DaemonCommandHandler}.
      */
+    @Override
     void parse(final InputStream is, final OutputStream os) throws IOException {
         this.getDaemonCommandHandler().printJobs(this.getQueueName(is));
     }
