@@ -68,7 +68,8 @@ public interface DaemonCommandHandler {
 
     /**
      * Handles the subcommand "Abort job" of the daemon command "Receive printer job". The handler should delete
-     * all files which have been created during this "Receive printer job" command.
+     * all files which have been created during this "Receive printer job" command. This method also gets
+     * called if an exception is unexpectedly catched and the DaemonCommandHandler should clean up things.
      */
     void abortPrinterJob() throws IOException;
 
