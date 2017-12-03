@@ -185,25 +185,39 @@ final class DaemonCommandHandlerStub implements DaemonCommandHandler {
     }
 
     @Override
-    public boolean receiveControlFile(final InputStream is, final int length, final String name) throws IOException {
+	public boolean isControlFileAcceptable(int fileLength, String fileName) throws IOException {
+		return true;
+	}
+
+    @Override
+    public void receiveControlFile(final InputStream is, final int length, final String name) throws IOException {
         this.controlFileName = name;
         this.controlFileLength = length;
 
         this.controlFileContent = new byte[length];
         this.isControlFileComplete = is.read(this.controlFileContent) == length;
 
-        return this.isControlFileComplete;
+        if(!this.isControlFileComplete) {
+        	throw new IOException("Short read of control file");
+        }
     }
 
+	@Override
+	public boolean isDataFileAcceptable(long fileLength, String fileName) throws IOException {
+		return true;
+	}
+
     @Override
-    public boolean receiveDataFile(final InputStream is, final long length, final String name) throws IOException {
+    public void receiveDataFile(final InputStream is, final long length, final String name) throws IOException {
         this.dataFileName = name;
         this.dataFileLength = length;
 
         this.dataFileContent = new byte[(int) length];
         this.isDataFileComplete = is.read(this.dataFileContent) == length;
 
-        return this.isDataFileComplete;
+        if(!this.isDataFileComplete) {
+        	throw new IOException("Short read of data file");
+        }
     }
 
     @Override

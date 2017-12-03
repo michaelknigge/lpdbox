@@ -39,18 +39,32 @@ public interface DaemonCommandHandler {
     boolean startPrinterJob(final String queueName) throws IOException;
 
     /**
+     * Checks if the control file (with the given size and name) is acceptable. Returns
+     * <code>true</code> if the client can continue and send the control file. Otherwise
+     * <code>false</code> is returned.
+     */
+    boolean isControlFileAcceptable(final int fileLength, final String fileName) throws IOException;
+
+    /**
      * Handles the subcommand "Receive control file" of the daemon command "Receive printer job".
      * The handler <b>MUST</b> read the control file completely from the {@link InputStream} or
      * throw an {@link IOException} to let the underlying connection be closed.
      */
-    boolean receiveControlFile(final InputStream is, final int fileLength, final String fileName) throws IOException;
+    void receiveControlFile(final InputStream is, final int fileLength, final String fileName) throws IOException;
+
+    /**
+     * Checks if the data file (with the given size and name) is acceptable. Returns
+     * <code>true</code> if the client can continue and send the data file. Otherwise
+     * <code>false</code> is returned.
+     */
+    boolean isDataFileAcceptable(final long fileLength, final String fileName) throws IOException;
 
     /**
      * Handles the subcommand "Receive data file" of the daemon command "Receive printer job".
      * The handler <b>MUST</b> read the data file completely from the {@link InputStream} or
      * throw an {@link IOException} to let the underlying connection be closed.
      */
-    boolean receiveDataFile(final InputStream is, final long fileLength, final String fileName) throws IOException;
+    void receiveDataFile(final InputStream is, final long fileLength, final String fileName) throws IOException;
 
     /**
      * Handles the subcommand "Abort job" of the daemon command "Receive printer job". The handler should delete
@@ -60,8 +74,8 @@ public interface DaemonCommandHandler {
 
     /**
      * Gets called when the client has closed the connection. The application is responsible to
-     * check if the control file and data file have been received. If one of them is missing,
-     * the application should delete the received files.
+     * check if the control file and data file have been received completely. If one of them is
+     * missing (or not received completely), the application should delete the received files.
      */
     void endPrinterJob() throws IOException;
 

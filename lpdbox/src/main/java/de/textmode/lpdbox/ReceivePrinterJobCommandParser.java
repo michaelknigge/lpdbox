@@ -63,10 +63,26 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
         if (this.getDaemonCommandHandler().startPrinterJob(queueName)) {
             this.sendPositiveAcknowledgement(os);
         } else {
-            // TODO X: Test in real world! sendNegativeAcknowledgement() or close the socket?
             this.sendNegativeAcknowledgement(os);
             return;
         }
+
+        try {
+        	handleSubcommands(is, os);
+        } catch (IOException e) {
+        	// Give the DaemonCommandHandler a chance to clean up, i. e. delete
+        	// temporarily created filed...
+        	this.getDaemonCommandHandler().endPrinterJob();
+
+        	// Re-throw the exception so the upper exception handler does its cleanup...
+        	throw e;
+        }
+    }
+
+    /**
+     * Reads the subcommands from the client and processes them.
+     */
+    void handleSubcommands(final InputStream is, final OutputStream os) throws IOException {
 
         while (true) {
             final int commandCode = is.read();
@@ -110,21 +126,30 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
 
                 final String fileName = parameters[1];
 
-                this.sendPositiveAcknowledgement(os);
+                final boolean canContinue = commandCode == COMMAND_CODE_RECEIVE_CONTROL_FILE
+                    ? this.getDaemonCommandHandler().isControlFileAcceptable((int) fileLength, fileName)
+                    : this.getDaemonCommandHandler().isDataFileAcceptable(fileLength, fileName);
 
-                final boolean result = commandCode == COMMAND_CODE_RECEIVE_CONTROL_FILE
-                    ? this.getDaemonCommandHandler().receiveControlFile(is, (int) fileLength, fileName)
-                    : this.getDaemonCommandHandler().receiveDataFile(is, fileLength, fileName);
+                if (canContinue) {
+                	this.sendPositiveAcknowledgement(os);
+                } else {
+                	this.sendNegativeAcknowledgement(os);
+                	return;
+                }
+
+                if (commandCode == COMMAND_CODE_RECEIVE_CONTROL_FILE) {
+                    this.getDaemonCommandHandler().receiveControlFile(is, (int) fileLength, fileName);
+                } else {
+                    this.getDaemonCommandHandler().receiveDataFile(is, fileLength, fileName);
+                }
 
                 // After the file has been sent completely, the client sends an 0x00 as an indication that
                 // the file being sent is complete.... We read that here...
-                // TODO X: Check existing lpr tools what happens if *NOT* an 0x00 has been sent!
                 final boolean fileComplete = is.read() == 0x00;
 
-                if (result && fileComplete) {
+                if (fileComplete) {
                     this.sendPositiveAcknowledgement(os);
                 } else {
-                    // TODO X: Test in real world! sendNegativeAcknowledgement() or close the socket?
                     this.sendNegativeAcknowledgement(os);
                 }
             }

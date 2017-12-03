@@ -42,7 +42,7 @@ public final class LinePrinterDaemonBuilder {
         this.portNumber = DEFAULT_PORT_NUMBER;
         this.maxThreads = DEFAULT_MAX_THREADS;
 
-        this.logger = LoggerFactory.getLogger(LinePrinterDaemonBuilder.class);
+        this.logger = LoggerFactory.getLogger(LinePrinterDaemon.class);
     }
 
     /**
