@@ -46,7 +46,7 @@ public final class LinePrinterDaemonBuilder {
     }
 
     /**
-     * Sets the {@link PrintJobsCommandHandler}.
+     * Sets the {@link Logger}.
      */
     public LinePrinterDaemonBuilder logger(final Logger value) {
         this.logger = value;
