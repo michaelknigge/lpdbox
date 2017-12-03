@@ -94,64 +94,6 @@ public final class LinePrinterDaemonTest extends TestCase {
         return ctrl.toString();
     }
 
-    public void fooXXX() throws Exception {
-        final Socket s = new Socket("localhost", PORT_NUMBER);
-
-        try {
-            final InputStream is = s.getInputStream();
-            final OutputStream os = s.getOutputStream();
-
-            // Command    : 0x02  (Receive Print File)
-            // Queue Name : NW_BETA93_EINZELBLATT
-            writeTo(os, "024e575f4245544139335f45494e5a454c424c4154540a");
-
-            // LPD tells us "yeah, continue...."
-            this.readPositiveAcknowledgement(is);
-
-            // Sub-Command : 0x02 (Receive control file)
-            // Length      : 0000000383
-            // Name        : cfA963SYSB
-            writeTo(os, "023030303030303033383320636641393633535953420a");
-
-            // LPD tells us "yeah, continue...."
-            this.readPositiveAcknowledgement(is);
-
-            // Now write the control file (plus 0x00 finalizer). This file here has been
-            // captured in a real world from a z/OS system talking to a print server.
-            writeTo(os, this.getControlFileContent() + "00");
-
-            // LPD tells us "yeah, continue...."
-            this.readPositiveAcknowledgement(is);
-
-            // Sub-Command : 0x03 (Receive data file)
-            // Length      : 0000000060
-            // Name        : dfA963SYSB
-            writeTo(os, "033030303030303030363020646641393633535953420a");
-
-            // LPD tells us "yeah, continue...."
-            this.readPositiveAcknowledgement(is);
-
-            // Now super simple "linemode" data follows. Just four data records, each 15 bytes long (including
-            // an prefixed two byte record length field). Here too, after the data an 0x00 is sent as an
-            // indication that the file being sent is complete.
-            final StringBuilder records = new StringBuilder();
-
-            records.append("000d4040e3c5e2e3e9c5c9d3c540f1");
-            records.append("000d4040e3c5e2e3e9c5c9d3c540f2");
-            records.append("000d4040e3c5e2e3e9c5c9d3c540f3");
-            records.append("000d4040e3c5e2e3e9c5c9d3c540f4");
-
-            // Now write the data file and the 0x00 "finalizer".
-            writeTo(os, records.toString() + "00");
-
-            // LPD tells us "yeah, continue...."
-            this.readPositiveAcknowledgement(is);
-
-        } finally {
-            s.close();
-        }
-    }
-
     /**
      * "Replays" a real-world example.
      */
