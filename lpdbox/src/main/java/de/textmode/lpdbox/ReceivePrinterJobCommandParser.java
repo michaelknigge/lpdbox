@@ -70,12 +70,12 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
         try {
         	handleSubcommands(is, os);
         } catch (IOException e) {
-        	// Give the DaemonCommandHandler a chance to clean up, i. e. delete
-        	// temporarily created filed...
-        	this.getDaemonCommandHandler().endPrinterJob();
+            // Give the DaemonCommandHandler a chance to clean up, i. e. delete
+            // temporarily created filed...
+            this.getDaemonCommandHandler().endPrinterJob();
 
-        	// Re-throw the exception so the upper exception handler does its cleanup...
-        	throw e;
+            // Re-throw the exception so the upper exception handler does its cleanup...
+            throw e;
         }
     }
 
@@ -131,10 +131,11 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
                     : this.getDaemonCommandHandler().isDataFileAcceptable(fileLength, fileName);
 
                 if (canContinue) {
-                	this.sendPositiveAcknowledgement(os);
+                    this.sendPositiveAcknowledgement(os);
                 } else {
-                	this.sendNegativeAcknowledgement(os);
-                	return;
+                    this.getDaemonCommandHandler().abortPrinterJob();
+                    this.sendNegativeAcknowledgement(os);
+                    return;
                 }
 
                 if (commandCode == COMMAND_CODE_RECEIVE_CONTROL_FILE) {
@@ -150,6 +151,7 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
                 if (fileComplete) {
                     this.sendPositiveAcknowledgement(os);
                 } else {
+                    this.getDaemonCommandHandler().abortPrinterJob();
                     this.sendNegativeAcknowledgement(os);
                 }
             }
