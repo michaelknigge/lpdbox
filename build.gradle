@@ -1,4 +1,4 @@
-defaultTasks 'clean', 'test', 'check', 'checkstyleMain', 'checkstyleTest', 'assemble'
+defaultTasks 'clean', 'javadoc', 'test', 'check', 'checkstyleMain', 'checkstyleTest', 'assemble'
 
 buildscript {
     repositories {
@@ -12,128 +12,130 @@ buildscript {
 
 subprojects {
 
-  apply plugin: 'java'
-  apply plugin: 'eclipse'
-  apply plugin: 'checkstyle'
-  apply plugin: 'jacoco'
-  apply plugin: 'findbugs'
-  apply plugin: 'maven'
-  apply plugin: 'maven-publish'
-  apply plugin: 'com.jfrog.bintray'
-  apply plugin: 'net.researchgate.release'
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+    apply plugin: 'checkstyle'
+    apply plugin: 'jacoco'
+    apply plugin: 'findbugs'
+    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
+    apply plugin: 'com.jfrog.bintray'
+    apply plugin: 'net.researchgate.release'
 
-  version = "1.0"
+    version = "1.0"
 
-  check.dependsOn jacocoTestReport
+    check.dependsOn jacocoTestReport
 
-  tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
-  }
+    bintrayUpload.dependsOn 'jar', 'sourceJar', 'javadocJar'
 
-  javadoc {
-    options.encoding = 'UTF-8'
-  }
-
-  checkstyle {
-    toolVersion = "6.0"
-  }
-
-  repositories {
-    jcenter()
-  }
-
-  dependencies {
-    compile 'org.slf4j:slf4j-api:1.7.25'
-    testCompile 'org.slf4j:slf4j-simple:1.7.25'
-    testCompile 'junit:junit:4.12'
-  }
-
-  checkstyle {
-    configFile = new File(rootDir, "config/checkstyle.xml")
-  }
-
-  jacocoTestReport {
-    reports {
-      xml.enabled = true
-      html.enabled = true
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+        sourceCompatibility = '1.8'
+        targetCompatibility = '1.8'
     }
-  }
 
-  release {
-    failOnUnversionedFiles = false
-  }
+    javadoc {
+        options.encoding = 'UTF-8'
+    }
 
-  jar {
-    manifest {
-      attributes("Specification-Title": "LPD-Server framework",
+    checkstyle {
+        toolVersion = "6.0"
+    }
+
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        compile 'org.slf4j:slf4j-api:1.7.25'
+        testCompile 'org.slf4j:slf4j-simple:1.7.25'
+        testCompile 'junit:junit:4.12'
+    }
+
+    checkstyle {
+        configFile = new File(rootDir, "config/checkstyle.xml")
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.enabled = true
+            html.enabled = true
+        }
+    }
+
+    release {
+        failOnUnversionedFiles = false
+    }
+
+    jar {
+        manifest {
+            attributes("Specification-Title": "LPD-Server framework",
                  "Implementation-Title": "lpdbox",
                  "Implementation-Version": version,
                  "Implementation-Vendor": "https://github.com/michaelknigge/lpdbox",
                  "Created-By": System.getProperty('java.version') + ' (' + System.getProperty('java.vendor') + ')',
                  "Class-Path": configurations.compile.collect { it.getName() }.join(' '))
-    }
-  }
-
-  bintray {
-    user = project.hasProperty('bintray.user') ? project.property('bintray.user') : System.getenv('BINTRAY_USER')
-    key = project.hasProperty('bintray.key') ? project.property('bintray.key') : System.getenv('BINTRAY_KEY')
-
-    publications = ['maven']
-    publish = true
-    pkg {
-      repo = 'maven'
-      name = 'lpdbox'
-      licenses = ['Apache-2.0']
-      vcsUrl = 'https://github.com/michaelknigge/lpdbox.git'
-      websiteUrl = 'https://github.com/michaelknigge/lpdbox'
-      issueTrackerUrl = 'https://github.com/michaelknigge/lpdbox/issues'
-      labels = ['lpd','lpr','printserver']
-      publicDownloadNumbers = true
-
-      githubRepo = 'michaelknigge/lpdbox'
-
-      version {
-        name = project.version
-        desc = "lpdbox version ${project.version}"
-        released = new Date()
-        vcsTag = "${project.version}"
-
-        gpg {
-          sign = true
         }
-      }
     }
-  }
 
-  task sourceJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allJava
-  }
+    bintray {
+        user = project.hasProperty('bintray.user') ? project.property('bintray.user') : System.getenv('BINTRAY_USER')
+        key = project.hasProperty('bintray.key') ? project.property('bintray.key') : System.getenv('BINTRAY_KEY')
 
-  task javadocJar (type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-  }
+        publications = ['maven']
+        publish = true
+        pkg {
+            repo = 'maven'
+            name = 'lpdbox'
+            licenses = ['Apache-2.0']
+            vcsUrl = 'https://github.com/michaelknigge/lpdbox.git'
+            websiteUrl = 'https://github.com/michaelknigge/lpdbox'
+            issueTrackerUrl = 'https://github.com/michaelknigge/lpdbox/issues'
+            labels = ['lpd','lpr','printserver']
+            publicDownloadNumbers = true
 
-  publishing {
-    publications {
-      maven(MavenPublication) {
-      from components.java
+            githubRepo = 'michaelknigge/lpdbox'
 
-      artifact sourceJar {
-        classifier 'sources'
-      }
+            version {
+                name = project.version
+                desc = "lpdbox version ${project.version}"
+                released = new Date()
+                vcsTag = "${project.version}"
 
-      artifact (javadocJar) {
+                gpg {
+                    sign = true
+                }
+            }
+        }
+    }
+
+    task sourceJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allJava
+    }
+
+    task javadocJar (type: Jar, dependsOn: javadoc) {
         classifier = 'javadoc'
-      }
-
-      groupId 'de.textmode.lpdbox'
-      artifactId 'lpdbox'
-      version "${project.version}"
-      }
+        from javadoc.destinationDir
     }
-  }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.java
+
+                artifact sourceJar {
+                    classifier 'sources'
+                }
+
+                artifact (javadocJar) {
+                    classifier = 'javadoc'
+                }
+
+                groupId 'de.textmode.lpdbox'
+                artifactId 'lpdbox'
+                version "${project.version}"
+            }
+        }
+    }
 }
