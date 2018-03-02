@@ -68,7 +68,7 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
         }
 
         try {
-        	handleSubcommands(is, os);
+            handleSubcommands(is, os);
         } catch (IOException e) {
             // Give the DaemonCommandHandler a chance to clean up, i. e. delete
             // temporarily created filed...
