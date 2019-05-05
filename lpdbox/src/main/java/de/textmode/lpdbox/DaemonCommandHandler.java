@@ -1,5 +1,7 @@
 package de.textmode.lpdbox;
 
+import java.io.Closeable;
+
 /*
  * Copyright 2017 Michael Knigge
  *
@@ -24,7 +26,7 @@ import java.util.List;
  * The {@link DaemonCommandHandler} provides methods that handle the operations
  * requested from the LPD clients.
  */
-public interface DaemonCommandHandler {
+public interface DaemonCommandHandler extends Closeable {
 
     /**
      * Handles the daemon command "Print any waiting jobs".

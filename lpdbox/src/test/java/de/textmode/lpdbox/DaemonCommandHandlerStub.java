@@ -40,6 +40,7 @@ final class DaemonCommandHandlerStub implements DaemonCommandHandler {
     private volatile List<String> jobList;
 
     private volatile boolean lockedQueue;
+    private volatile boolean isClosed;
     private volatile boolean isAborted;
     private volatile boolean isEnded;
     private volatile boolean isDataFileComplete;
@@ -68,6 +69,13 @@ final class DaemonCommandHandlerStub implements DaemonCommandHandler {
      */
     void unlockQueue() {
         this.lockedQueue = false;
+    }
+
+    /**
+     * Checks if the "close()" method has been called.
+     */
+    boolean isClosed() {
+        return this.isClosed;
     }
 
     /**
@@ -251,5 +259,10 @@ final class DaemonCommandHandlerStub implements DaemonCommandHandler {
         this.jobList = jobs;
 
         return "this is a short list";
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.isClosed = true;
     }
 }
