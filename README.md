@@ -12,7 +12,7 @@ Because lpdbox is available at [jcenter](https://bintray.com/bintray/jcenter) it
 <dependency>
   <groupId>de.textmode.lpdbox</groupId>
   <artifactId>lpdbox</artifactId>
-  <version>1.0</version>
+  <version>1.1</version>
   <type>pom</type>
 </dependency>
 ```
@@ -21,7 +21,7 @@ If you use Gradle, add this:
 
 ```
 dependencies {
-    compile 'de.textmode.lpdbox:lpdbox:1.0'
+    compile 'de.textmode.lpdbox:lpdbox:1.1'
 }
 ```
 
