@@ -70,8 +70,7 @@ public interface DaemonCommandHandler extends Closeable {
 
     /**
      * Handles the subcommand "Abort job" of the daemon command "Receive printer job". The handler should delete
-     * all files which have been created during this "Receive printer job" command. This method also gets
-     * called if an exception is unexpectedly catched and the DaemonCommandHandler should clean up things.
+     * all files which have been created during this "Receive printer job" command.
      */
     void abortPrinterJob() throws IOException;
 
