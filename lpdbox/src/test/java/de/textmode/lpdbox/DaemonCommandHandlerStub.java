@@ -21,6 +21,8 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * Stub implementation of a {@link DaemonCommandHandler} for unit tests.
  */
@@ -239,6 +241,10 @@ final class DaemonCommandHandlerStub implements DaemonCommandHandler {
     }
 
     @Override
+    @SuppressFBWarnings(
+            value = "EI_EXPOSE_REP2",
+            justification = "The List<String> stored locally."
+    )
     public void removeJobs(final String queueName, final String agent, final List<String> jobs) throws IOException {
         this.printerQueueName = queueName;
         this.userName = agent;
@@ -246,6 +252,10 @@ final class DaemonCommandHandlerStub implements DaemonCommandHandler {
     }
 
     @Override
+    @SuppressFBWarnings(
+            value = "EI_EXPOSE_REP2",
+            justification = "The List<String> stored locally."
+    )
     public String sendQueueStateLong(final String queueName, final List<String> jobs) throws IOException {
         this.printerQueueName = queueName;
         this.jobList = jobs;
@@ -254,6 +264,10 @@ final class DaemonCommandHandlerStub implements DaemonCommandHandler {
     }
 
     @Override
+    @SuppressFBWarnings(
+            value = "EI_EXPOSE_REP2",
+            justification = "The List<String> stored locally."
+    )
     public String sendQueueStateShort(final String queueName, final List<String> jobs) throws IOException {
         this.printerQueueName = queueName;
         this.jobList = jobs;

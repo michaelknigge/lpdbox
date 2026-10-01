@@ -16,6 +16,8 @@ package de.textmode.lpdbox;
  * limitations under the License.
  */
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * Factory for {@link DaemonCommandHandlerStub}.
  */
@@ -24,6 +26,10 @@ final class DaemonCommandHandlerStubFactory implements DaemonCommandHandlerFacto
     private final DaemonCommandHandlerStub stubHandler = new DaemonCommandHandlerStub();
 
     @Override
+    @SuppressFBWarnings(
+            value = "EI_EXPOSE_REP",
+            justification = "The supplied DaemonCommandHandlerStub is intentionally returned."
+    )
     public DaemonCommandHandler create() {
         return this.stubHandler;
     }
