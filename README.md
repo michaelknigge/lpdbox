@@ -12,7 +12,7 @@ Because lpdbox is available at [Maven Central](https://central.sonatype.com/arti
 <dependency>
   <groupId>de.textmode.lpdbox</groupId>
   <artifactId>lpdbox</artifactId>
-  <version>2.5</version>
+  <version>1.2</version>
   <type>pom</type>
 </dependency>
 ```
@@ -21,7 +21,7 @@ If you use Gradle, add this:
 
 ```
 dependencies {
-    implementation 'de.textmode.lpdbox:lpdbox:2.5'
+    implementation 'de.textmode.lpdbox:lpdbox:1.2'
 }
 ```
 
