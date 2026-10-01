@@ -23,9 +23,9 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Arrays;
 
-import javax.xml.bind.DatatypeConverter;
-
 import junit.framework.TestCase;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 
 /**
  * Unit-Tests of class {@link LinePrinterDaemon}.
@@ -37,8 +37,12 @@ public final class LinePrinterDaemonTest extends TestCase {
     /**
      * Converts a hex string to a byte array.
      */
-    private static byte[] hexToByteArray(final String s) {
-        return DatatypeConverter.parseHexBinary(s);
+    private static byte[] hexToByteArray(final String s) throws IOException {
+        try {
+            return Hex.decodeHex(s);
+        } catch (DecoderException e) {
+            throw new IOException(e);
+        }
     }
 
     /**
