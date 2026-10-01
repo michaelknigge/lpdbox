@@ -1,4 +1,4 @@
-# lpdbox [![Build Status](https://github.com/michaelknigge/pclbox/actions/workflows/gradle.yml/badge.svg)](https://github.com/michaelknigge/pclbox/actions/workflows/gradle.yml) [![codecov.io](https://codecov.io/github/michaelknigge/lpdbox/coverage.svg?branch=master)](https://codecov.io/github/michaelknigge/lpdbox?branch=master) [![Coverity Status](https://scan.coverity.com/projects/14242/badge.svg)](https://scan.coverity.com/projects/14242)
+# lpdbox [![Build Status](https://github.com/michaelknigge/lpdbox/actions/workflows/gradle.yml/badge.svg)](https://github.com/michaelknigge/lpdbox/actions/workflows/gradle.yml) [![codecov.io](https://codecov.io/github/michaelknigge/lpdbox/coverage.svg?branch=master)](https://codecov.io/github/michaelknigge/lpdbox?branch=master) [![Coverity Status](https://scan.coverity.com/projects/14242/badge.svg)](https://scan.coverity.com/projects/14242)
 
 This project provides a LPD-Server-Framework written in pure Java. It is not a stand alone LPD-Server. It allows you to add LPD-Server capabilities to your own applications.
 
@@ -6,13 +6,13 @@ This project provides a LPD-Server-Framework written in pure Java. It is not a s
 lpdbox uses the [Simple Logging Facade for Java (SLF4J)](https://www.slf4j.org/) for logging. That' all.
 
 # Usage
-Because lpdbox is available at [jcenter](https://bintray.com/bintray/jcenter) it is very easy to use lpdbox in your projects. At first, add lpdbox to your build file. If you use Maven, add the following to your build file:
+Because lpdbox is available at [Maven Central](https://central.sonatype.com/artifact/de.textmode.lpdbox/lpdbox), it is very easy to use lpdbox in your projects. At first, add lpdbox to your build file. If you use Maven, add the following to your build file:
 
 ```xml
 <dependency>
   <groupId>de.textmode.lpdbox</groupId>
   <artifactId>lpdbox</artifactId>
-  <version>1.1</version>
+  <version>2.5</version>
   <type>pom</type>
 </dependency>
 ```
@@ -21,7 +21,7 @@ If you use Gradle, add this:
 
 ```
 dependencies {
-    compile 'de.textmode.lpdbox:lpdbox:1.1'
+    implementation 'de.textmode.lpdbox:lpdbox:2.5'
 }
 ```
 
