@@ -65,7 +65,7 @@ subprojects {
 
         testImplementation 'org.slf4j:slf4j-simple:1.7.25'
         testImplementation 'junit:junit:4.13.2'
-		testImplementation 'commons-codec:commons-codec:1.22.1'
+        testImplementation 'commons-codec:commons-codec:1.22.1'
     }
 
     java {
