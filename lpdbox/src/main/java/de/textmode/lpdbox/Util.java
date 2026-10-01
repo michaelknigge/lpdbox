@@ -40,12 +40,21 @@ final class Util {
     static final String ERROR_END_OF_STREAM = "Unexpectedly reached the end of the data stream. "
             + "The connection might be lost.";
 
+    /**
+     * Prevents instantiation of this utility class.
+     */
     private Util() {
     }
 
     /**
      * Reads bytes from the {@link InputStream} until a line feed (0x0A)
      * has been read. Returns all bytes but not the line feed.
+     *
+     * @param is input stream from which to read the line
+     *
+     * @return trimmed line without its terminating line feed
+     *
+     * @throws IOException if reading fails or the stream ends before a line feed
      */
     static String readLine(final InputStream is) throws IOException {
         final StringBuilder sb = new StringBuilder();
@@ -66,6 +75,11 @@ final class Util {
 
     /**
      * Converts a {@link String} to ISO-8859-1 and writes in to the given {@link OutputStream}.
+     *
+     * @param input string to write
+     * @param os output stream receiving the encoded string
+     *
+     * @throws IOException if writing the encoded string fails
      */
     static void writeString(final String input, final OutputStream os) throws IOException {
         os.write(input.getBytes(ISO_8859_1));
@@ -73,6 +87,8 @@ final class Util {
 
     /**
      * Closes the {@link Closeable} quietly (means, all errors are catched and ignored).
+     *
+     * @param closeable resource to close
      */
     static void closeQuietly(final Closeable closeable) {
         try {
@@ -84,6 +100,10 @@ final class Util {
 
     /**
      * Returns a {@link String} representation of the connected endpoint.
+     *
+     * @param socket socket connected to the client
+     *
+     * @return remote endpoint without its leading slash, or {@code "unknown"} if unavailable
      */
     static String getClientString(final Socket socket) {
         final SocketAddress remote = socket.getRemoteSocketAddress();

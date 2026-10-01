@@ -41,6 +41,10 @@ final class LinePrinterDaemonConnectionHandler implements Runnable {
 
     /**
      * Constructor.
+     *
+     * @param logger logger used while handling the connection
+     * @param connection socket connected to the client
+     * @param factory factory for the connection's command handler
      */
     LinePrinterDaemonConnectionHandler(
             final Logger logger,
@@ -69,6 +73,11 @@ final class LinePrinterDaemonConnectionHandler implements Runnable {
         }
     }
 
+    /**
+     * Reads and dispatches the client's daemon command.
+     *
+     * @throws IOException if reading or processing the command fails
+     */
     private void handleConnection() throws IOException {
 
         final String client = Util.getClientString(this.connection);

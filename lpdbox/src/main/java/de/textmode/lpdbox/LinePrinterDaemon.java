@@ -46,6 +46,11 @@ public final class LinePrinterDaemon implements Runnable {
     /**
      * Constructor. Use the {@link de.textmode.lpdbox.LinePrinterDaemonBuilder} to
      * build the {@link LinePrinterDaemon}.
+     *
+     * @param portNumber port on which the daemon listens
+     * @param maxThreads maximum number of threads handling client connections
+     * @param factory factory for command handlers
+     * @param logger logger used by the daemon
      */
     LinePrinterDaemon(
             final int portNumber,
@@ -63,11 +68,24 @@ public final class LinePrinterDaemon implements Runnable {
 
         this.executorService = Executors.newFixedThreadPool(maxThreads, new ThreadFactory() {
 
+            /**
+             * Creates a daemon thread for a client connection.
+             *
+             * @param r task to run in the thread
+             *
+             * @return new daemon thread with an uncaught exception handler
+             */
             @Override
             public Thread newThread(final Runnable r) {
                 final Thread thread = Executors.defaultThreadFactory().newThread(r);
                 thread.setDaemon(true);
                 thread.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+                    /**
+                     * Logs an uncaught exception from a client connection thread.
+                     *
+                     * @param t thread in which the exception occurred
+                     * @param e uncaught exception
+                     */
                     @Override
                     public void uncaughtException(final Thread t, final Throwable e) {
                         LinePrinterDaemon.this.logger.error(
@@ -87,6 +105,8 @@ public final class LinePrinterDaemon implements Runnable {
      * Opens the {@link ServerSocket} but do not wait and/or accept incoming connections.
      * This method can be used to check if the server can be started (i. e. check if the
      * port number is available).
+     *
+     * @throws IOException if the server socket cannot be opened or configured
      */
     public void startup() throws IOException {
         if (this.serverSocket == null) {
@@ -99,6 +119,8 @@ public final class LinePrinterDaemon implements Runnable {
 
     /**
      * Returns <code>true</code> if the server is up and running.
+     *
+     * @return {@code true} if the server socket is open and the daemon is running; {@code false} otherwise
      */
     public boolean isRunning() {
         return this.serverSocket != null && this.isRunning;
@@ -131,6 +153,8 @@ public final class LinePrinterDaemon implements Runnable {
 
     /**
      * Accepts connections from clients and handles them.
+     *
+     * @throws IOException if accepting a client connection fails
      */
     private void handleConnections() throws IOException {
         this.isRunning = true;
@@ -146,6 +170,8 @@ public final class LinePrinterDaemon implements Runnable {
 
     /**
      * Handles a connection from a client. The connection is handled in a separate thread.
+     *
+     * @param connection socket connected to the client
      */
     private void handleConnection(final Socket connection) {
         this.executorService.execute(new LinePrinterDaemonConnectionHandler(
@@ -174,6 +200,12 @@ public final class LinePrinterDaemon implements Runnable {
      * Stops the {@link LinePrinterDaemon}. This method waits up to the given milliseconds until
      * the {@link LinePrinterDaemon} has been stopped. If the {@link LinePrinterDaemon} has been
      * ended within that given timeout, <code>true</code> is returned, otherwise <code>false</code>.
+     *
+     * @param timeoutInMillis maximum time to wait in milliseconds
+     *
+     * @return {@code true} if the daemon stopped within the timeout; {@code false} otherwise
+     *
+     * @throws InterruptedException if interrupted while waiting for the daemon to stop
      */
     public boolean stop(final long timeoutInMillis) throws InterruptedException {
         this.stop();

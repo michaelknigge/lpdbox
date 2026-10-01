@@ -30,6 +30,9 @@ final class PrintJobsCommandParser extends CommandParser {
 
     /**
      * Constructor.
+     *
+     * @param logger logger used while parsing the command
+     * @param handler handler that prints the waiting jobs
      */
     PrintJobsCommandParser(final Logger logger, final DaemonCommandHandler handler) {
         super(logger, handler);
@@ -38,6 +41,11 @@ final class PrintJobsCommandParser extends CommandParser {
     /**
      * Parses the daemon command "Print any waiting jobs" and delegates the work to
      * the {@link DaemonCommandHandler}.
+     *
+     * @param is input stream containing the queue name
+     * @param os output stream for the response
+     *
+     * @throws IOException if reading the command or printing jobs fails
      */
     @Override
     void parse(final InputStream is, final OutputStream os) throws IOException {

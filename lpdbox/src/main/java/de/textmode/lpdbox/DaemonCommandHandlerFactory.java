@@ -23,6 +23,8 @@ public interface DaemonCommandHandlerFactory {
 
     /**
      * Creates and returns a new instance of a {@link DaemonCommandHandler}.
+     *
+     * @return ready to use {@link DaemonCommandHandler}.
      */
     DaemonCommandHandler create();
 }

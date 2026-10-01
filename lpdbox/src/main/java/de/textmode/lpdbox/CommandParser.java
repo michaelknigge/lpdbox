@@ -33,6 +33,9 @@ abstract class CommandParser {
 
     /**
      * Constructor.
+     *
+     * @param logger logger used while parsing commands
+     * @param handler handler that processes parsed commands
      */
     CommandParser(final Logger logger, final DaemonCommandHandler handler) {
         this.logger = logger;
@@ -42,11 +45,18 @@ abstract class CommandParser {
     /**
      * Reads the command from the {@link InputStream}, processes it and writes the result
      * (if any) to the {@link OutputStream}.
+     *
+     * @param is input stream containing the command
+     * @param os output stream for the response
+     *
+     * @throws IOException if reading, processing, or writing the command fails
      */
     abstract void parse(final InputStream is, final OutputStream os) throws IOException;
 
     /**
      * Returns the {@link Logger} to be used.
+     *
+     * @return logger used while parsing commands
      */
     Logger getLogger() {
         return this.logger;
@@ -54,6 +64,8 @@ abstract class CommandParser {
 
     /**
      * Returns the {@link DaemonCommandHandler} to be used.
+     *
+     * @return handler that processes parsed commands
      */
     DaemonCommandHandler getDaemonCommandHandler() {
         return this.handler;
@@ -61,6 +73,12 @@ abstract class CommandParser {
 
     /**
      * Reads the queue name from the {@link InputStream}.
+     *
+     * @param is input stream containing the queue name
+     *
+     * @return queue name supplied by the client
+     *
+     * @throws IOException if the queue name cannot be read or is empty
      */
     String getQueueName(final InputStream is) throws IOException {
         final String queueName = Util.readLine(is);

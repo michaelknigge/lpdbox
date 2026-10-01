@@ -31,6 +31,9 @@ final class ReportQueueStateLongCommandParser extends CommandParser {
 
     /**
      * Constructor.
+     *
+     * @param logger logger used while parsing the command
+     * @param handler handler that reports queue state
      */
     ReportQueueStateLongCommandParser(final Logger logger, final DaemonCommandHandler handler) {
         super(logger, handler);
@@ -39,6 +42,11 @@ final class ReportQueueStateLongCommandParser extends CommandParser {
     /**
      * Parses the daemon command "Send queue state (long)" and delegates the work to
      * the {@link DaemonCommandHandler}.
+     *
+     * @param is input stream containing the queue name and optional job identifiers
+     * @param os output stream for the long queue state
+     *
+     * @throws IOException if reading the command or writing the queue state fails
      */
     void parse(final InputStream is, final OutputStream os) throws IOException {
 

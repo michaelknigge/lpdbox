@@ -30,6 +30,10 @@ public interface DaemonCommandHandler extends Closeable {
 
     /**
      * Handles the daemon command "Print any waiting jobs".
+     *
+     * @param queueName name of the print queue
+     *
+     * @throws IOException if printing the waiting jobs fails
      */
     void printJobs(final String queueName) throws IOException;
 
@@ -37,6 +41,12 @@ public interface DaemonCommandHandler extends Closeable {
      * Gets called when the LPD-Server received the daemon command "Receive printer job".
      * Returns <code>false</code> if the LPD-Server should refuse the printer job (i. e.
      * the queue is currently stopped).
+     *
+     * @param queueName name of the print queue receiving the job
+     *
+     * @return {@code true} if the server should accept the printer job; {@code false} if it should refuse it
+     *
+     * @throws IOException if starting the printer job fails
      */
     boolean startPrinterJob(final String queueName) throws IOException;
 
@@ -44,6 +54,13 @@ public interface DaemonCommandHandler extends Closeable {
      * Checks if the control file (with the given size and name) is acceptable. Returns
      * <code>true</code> if the client can continue and send the control file. Otherwise
      * <code>false</code> is returned.
+     *
+     * @param fileLength size of the control file in bytes
+     * @param fileName name of the control file
+     *
+     * @return {@code true} if the client may send the control file; {@code false} otherwise
+     *
+     * @throws IOException if checking the control file fails
      */
     boolean isControlFileAcceptable(final int fileLength, final String fileName) throws IOException;
 
@@ -51,6 +68,12 @@ public interface DaemonCommandHandler extends Closeable {
      * Handles the subcommand "Receive control file" of the daemon command "Receive printer job".
      * The handler <b>MUST</b> read the control file completely from the {@link InputStream} or
      * throw an {@link IOException} to let the underlying connection be closed.
+     *
+     * @param is input stream containing the control file
+     * @param fileLength size of the control file in bytes
+     * @param fileName name of the control file
+     *
+     * @throws IOException if the control file cannot be read completely
      */
     void receiveControlFile(final InputStream is, final int fileLength, final String fileName) throws IOException;
 
@@ -58,6 +81,13 @@ public interface DaemonCommandHandler extends Closeable {
      * Checks if the data file (with the given size and name) is acceptable. Returns
      * <code>true</code> if the client can continue and send the data file. Otherwise
      * <code>false</code> is returned.
+     *
+     * @param fileLength size of the data file in bytes
+     * @param fileName name of the data file
+     *
+     * @return {@code true} if the client may send the data file; {@code false} otherwise
+     *
+     * @throws IOException if checking the data file fails
      */
     boolean isDataFileAcceptable(final long fileLength, final String fileName) throws IOException;
 
@@ -65,12 +95,20 @@ public interface DaemonCommandHandler extends Closeable {
      * Handles the subcommand "Receive data file" of the daemon command "Receive printer job".
      * The handler <b>MUST</b> read the data file completely from the {@link InputStream} or
      * throw an {@link IOException} to let the underlying connection be closed.
+     *
+     * @param is input stream containing the data file
+     * @param fileLength size of the data file in bytes
+     * @param fileName name of the data file
+     *
+     * @throws IOException if the data file cannot be read completely
      */
     void receiveDataFile(final InputStream is, final long fileLength, final String fileName) throws IOException;
 
     /**
      * Handles the subcommand "Abort job" of the daemon command "Receive printer job". The handler should delete
      * all files which have been created during this "Receive printer job" command.
+     *
+     * @throws IOException if aborting the printer job fails
      */
     void abortPrinterJob() throws IOException;
 
@@ -78,11 +116,19 @@ public interface DaemonCommandHandler extends Closeable {
      * Gets called when the client has closed the connection. The application is responsible to
      * check if the control file and data file have been received completely. If one of them is
      * missing (or not received completely), the application should delete the received files.
+     *
+     * @throws IOException if completing or cleaning up the printer job fails
      */
     void endPrinterJob() throws IOException;
 
     /**
      * Handles the daemon command "Remove jobs".
+     *
+     * @param queueName name of the print queue
+     * @param agent agent requesting removal of the jobs
+     * @param jobs job identifiers to remove
+     *
+     * @throws IOException if removing the jobs fails
      */
     void removeJobs(final String queueName, final String agent, final List<String> jobs) throws IOException;
 
@@ -90,6 +136,13 @@ public interface DaemonCommandHandler extends Closeable {
      * Handles the daemon command "Send queue state (long)". Returns an textual description
      * of the print queue with the given name. If the List is empty, all jobs are
      * returned. Note that every line of the textual description must end with an line feed.
+     *
+     * @param queueName name of the print queue
+     * @param jobs job identifiers to include, or an empty list for all jobs
+     *
+     * @return long textual description of the requested queue state, with each line ending in a line feed
+     *
+     * @throws IOException if retrieving the queue state fails
      */
     String sendQueueStateLong(final String queueName, final List<String> jobs) throws IOException;
 
@@ -97,6 +150,13 @@ public interface DaemonCommandHandler extends Closeable {
      * Handles the daemon command "Send queue state (short)". Returns an textual description
      * of the print queue with the given name. If the List is empty, all jobs are
      * returned. Note that every line of the textual description must end with an line feed.
+     *
+     * @param queueName name of the print queue
+     * @param jobs job identifiers to include, or an empty list for all jobs
+     *
+     * @return short textual description of the requested queue state, with each line ending in a line feed
+     *
+     * @throws IOException if retrieving the queue state fails
      */
     String sendQueueStateShort(final String queueName, final List<String> jobs) throws IOException;
 }

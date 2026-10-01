@@ -46,6 +46,9 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
 
     /**
      * Constructor.
+     *
+     * @param logger logger used while parsing the command
+     * @param handler handler that receives the printer job
      */
     ReceivePrinterJobCommandParser(final Logger logger, final DaemonCommandHandler handler) {
         super(logger, handler);
@@ -54,6 +57,11 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
     /**
      * Parses the daemon command "Receive printer job" and delegates the work to
      * the {@link DaemonCommandHandler}.
+     *
+     * @param is input stream containing the printer job command and its subcommands
+     * @param os output stream for acknowledgements
+     *
+     * @throws IOException if reading, handling, or acknowledging the printer job fails
      */
     @Override
     void parse(final InputStream is, final OutputStream os) throws IOException {
@@ -81,6 +89,11 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
 
     /**
      * Reads the subcommands from the client and processes them.
+     *
+     * @param is input stream containing the subcommands and files
+     * @param os output stream for acknowledgements
+     *
+     * @throws IOException if a subcommand is invalid or processing it fails
      */
     void handleSubcommands(final InputStream is, final OutputStream os) throws IOException {
 
@@ -160,6 +173,10 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
 
     /**
      * Sends a positive acknowledgement to the client.
+     *
+     * @param os output stream for the acknowledgement
+     *
+     * @throws IOException if writing the acknowledgement fails
      */
     private void sendPositiveAcknowledgement(final OutputStream os) throws IOException {
         this.getLogger().debug("Send positive acknowledgement to the client.");
@@ -168,6 +185,10 @@ final class ReceivePrinterJobCommandParser extends CommandParser {
 
     /**
      * Sends a negative acknowledgement to the client.
+     *
+     * @param os output stream for the acknowledgement
+     *
+     * @throws IOException if writing the acknowledgement fails
      */
     private void sendNegativeAcknowledgement(final OutputStream os) throws IOException {
         this.getLogger().debug("Send negative acknowledgement to the client.");

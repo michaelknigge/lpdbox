@@ -31,6 +31,9 @@ final class RemovePrintJobsCommandParser extends CommandParser {
 
     /**
      * Constructor.
+     *
+     * @param logger logger used while parsing the command
+     * @param handler handler that removes the jobs
      */
     RemovePrintJobsCommandParser(final Logger logger, final DaemonCommandHandler handler) {
         super(logger, handler);
@@ -39,6 +42,11 @@ final class RemovePrintJobsCommandParser extends CommandParser {
     /**
      * Parses the daemon command "Remove print jobs" and delegates the work to
      * the {@link DaemonCommandHandler}.
+     *
+     * @param is input stream containing the queue name, agent, and job identifiers
+     * @param os output stream for the response
+     *
+     * @throws IOException if reading the command or removing jobs fails
      */
     void parse(final InputStream is, final OutputStream os) throws IOException {
 
